@@ -1,6 +1,6 @@
 # Maintainer: Bhanupong Petchlert <bpetlert@gmail.com>
 pkgname=mirrorup
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="A service to retrieve the latest Pacman mirror list"
 arch=('x86_64')
