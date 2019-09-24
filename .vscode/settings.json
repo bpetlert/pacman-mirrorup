@@ -4,6 +4,7 @@
     "clippy",
     "isos",
     "mirrorup",
+    "pkgver",
     "powf",
     "rsync",
     "stddev"
