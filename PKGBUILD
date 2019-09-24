@@ -24,11 +24,11 @@ build() {
   cd "$startdir"
 
   # Ignore target_dir in ~/.cargo/config, use BUILDDIR from makepkg instead
-  CARGO_TARGET_DIR="$srcdir/../target" cargo build --release --locked
+  CARGO_TARGET_DIR="$srcdir/target" cargo build --release --locked
 }
 
 package() {
-  cd "$srcdir/../"
+  cd "$srcdir"
   install -Dm755 "target/release/mirrorup" "$pkgdir/usr/bin/mirrorup"
 
   install -Dm644 "$startdir/mirrorup.service" "$pkgdir/usr/lib/systemd/system/mirrorup.service"
