@@ -1,0 +1,33 @@
+# Maintainer: Bhanupong Petchlert <bpetlert@gmail.com>
+pkgname=mirrorup
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A service to retrieve the latest Pacman mirror list"
+arch=('x86_64')
+url="https://github.com/bpetlert/mirrorup"
+license=('MIT')
+depends=('systemd')
+makedepends=('rust' 'cargo')
+provides=("${pkgname}")
+conflicts=("${pkgname}")
+
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/bpetlert/${pkgname}/archive/${pkgver}.tar.gz")
+sha256sums=('c2d5e92d1d26e288df388f62113e0be963faf2606501ba8fad07c563ca6ec057')
+
+build() {
+  cd "${pkgname}-${pkgver}"
+
+  # Ignore target_dir in ~/.cargo/config, reset it to default: "target".
+  cargo build --release --locked --target-dir target
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  install -Dm755 "target/release/mirrorup" "$pkgdir/usr/bin/mirrorup"
+
+  install -Dm644 "mirrorup.service" "$pkgdir/usr/lib/systemd/system/mirrorup.service"
+  install -Dm644 "mirrorup.timer" "$pkgdir/usr/lib/systemd/system/mirrorup.timer"
+
+  install -Dm644 "README.md" "$pkgdir/usr/share/doc/${pkgname}/README.md"
+  install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/${pkgname}/LICENSE"
+}
