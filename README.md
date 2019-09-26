@@ -1,5 +1,9 @@
 # mirrorup
 
+[![Release](https://img.shields.io/github/v/tag/bpetlert/mirrorup?include_prereleases&label=release&style=flat-square)](https://github.com/bpetlert/mirrorup/releases/latest)
+[![License:
+MIT](https://img.shields.io/github/license/bpetlert/mirrorup?style=flat-square)](./LICENSE)
+
 A service to retrieve the latest Pacman mirror list
 
 Mirrorup uses JSON from [Arch Linux's mirror
