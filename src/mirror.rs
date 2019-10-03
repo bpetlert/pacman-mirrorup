@@ -35,7 +35,7 @@ pub struct Mirror {
     ipv6: bool,
     details: String,
 
-    // mirrorup data
+    // pacman-mirrorup data
     transfer_rate: Option<f64>,
     weighted_score: Option<f64>,
 }

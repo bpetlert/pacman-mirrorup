@@ -1,12 +1,13 @@
-# mirrorup
+# pacman-mirrorup
 
-[![Release](https://img.shields.io/github/v/tag/bpetlert/mirrorup?include_prereleases&label=release&style=flat-square)](https://github.com/bpetlert/mirrorup/releases/latest)
+[![Release](https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prereleases&label=release&style=flat-square)](https://github.com/bpetlert/pacman-pacman-mirrorup/releases/latest)
 [![License:
-MIT](https://img.shields.io/github/license/bpetlert/mirrorup?style=flat-square)](./LICENSE)
+MIT](https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-square)](./LICENSE)
 
-A service to retrieve the latest Pacman mirror list
+A service to retrieve the best and latest Pacman mirror list based on
+user's geography
 
-Mirrorup uses JSON from [Arch Linux's mirror
+Pacman-mirrorup uses JSON from [Arch Linux's mirror
 status](https://www.archlinux.org/mirrors/status/) as data source. It
 applies filters as the following to original data:
 
@@ -26,29 +27,29 @@ weighted using transfer rate and then select the best N mirrors.
 Build and install arch package from source:
 
 ``` bash
-$ git clone https://github.com/bpetlert/mirrorup.git
+$ git clone https://github.com/bpetlert/pacman-mirrorup.git
 ...
-$ cd mirrorup
+$ cd pacman-mirrorup
 $ makepkg -p PKGBUILD.local
 ...
-$ pacman -U mirrorup-xxxx-1-x86_64.pkg.tar
+$ pacman -U pacman-mirrorup-xxxx-1-x86_64.pkg.tar
 ```
 
-Then enable/start mirrorup.timer
+Then enable/start pacman-mirrorup.timer
 
 ``` bash
-$ systemctl enable mirrorup.timer
+$ systemctl enable pacman-mirrorup.timer
 ...
-$ systemctl start mirrorup.timer
+$ systemctl start pacman-mirrorup.timer
 ```
 
 ## Configuration
 
-To change the options of mirrorup service, run `systemctl edit
-mirrorup.service`
+To change the options of pacman-mirrorup service, run `systemctl edit
+pacman-mirrorup.service`
 
 ``` ini
-/etc/systemd/system/mirrorup.service.d/override.conf
+/etc/systemd/system/pacman-mirrorup.service.d/override.conf
 -------------------------------------------------------------------------
 
 [Service]
@@ -72,11 +73,11 @@ Supported options are:
       - `-vvv`: debug
       - `-vvvv`: trace
 
-To change the options of mirrorup timer, run `systemctl edit
-mirrorup.timer`
+To change the options of pacman-mirrorup timer, run `systemctl edit
+pacman-mirrorup.timer`
 
 ``` ini
-/etc/systemd/system/mirrorup.timer.d/override.conf
+/etc/systemd/system/pacman-mirrorup.timer.d/override.conf
 -------------------------------------------------------------------------
 
 [Timer]

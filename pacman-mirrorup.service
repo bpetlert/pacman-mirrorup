@@ -10,7 +10,7 @@ Environment='MIRRORUP_ARGS=-v --output-file /etc/pacman.d/mirrorlist'
 ExecStartPre=/usr/bin/bash -c '[[ -f /etc/pacman.d/mirrorlist ]] && /usr/bin/mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.old'
 
 # update mirrorlist
-ExecStart=/usr/bin/mirrorup $MIRRORUP_ARGS
+ExecStart=/usr/bin/pacman-mirrorup $MIRRORUP_ARGS
 
-# if mirrorup fails then restore old mirrorlist
+# if pacman-mirrorup fails then restore old mirrorlist
 ExecStopPost=/usr/bin/bash -c 'if [[ $$EXIT_STATUS != 0 ]]; then [[ -f /etc/pacman.d/mirrorlist.old ]] && /usr/bin/mv /etc/pacman.d/mirrorlist.old /etc/pacman.d/mirrorlist; fi'
