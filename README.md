@@ -1,6 +1,6 @@
 # pacman-mirrorup
 
-[![Release](https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prereleases&label=release&style=flat-square)](https://github.com/bpetlert/pacman-pacman-mirrorup/releases/latest)
+[![Release](https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prereleases&label=release&style=flat-square)](https://github.com/bpetlert/pacman-mirrorup/releases/latest)
 [![License:
 MIT](https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-square)](./LICENSE)
 
