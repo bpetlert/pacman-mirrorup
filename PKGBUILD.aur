@@ -12,7 +12,7 @@ provides=("${pkgname}")
 conflicts=("${pkgname}")
 
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/bpetlert/${pkgname}/archive/${pkgver}.tar.gz")
-sha256sums=('c2d5e92d1d26e288df388f62113e0be963faf2606501ba8fad07c563ca6ec057')
+sha256sums=('b60e7ff675084ce363cc967e25839b73cdb97df3ae9007b490809725b0a0f6c2')
 
 build() {
   cd "${pkgname}-${pkgver}"
