@@ -48,7 +48,7 @@ impl MirrorsStatus {
     where
         T: reqwest::IntoUrl,
     {
-        let mut response = reqwest::get(url)?;
+        let response = reqwest::blocking::get(url)?;
         let mirrors_status: MirrorsStatus = response.json()?;
         Ok(mirrors_status)
     }
@@ -65,7 +65,7 @@ pub trait Filter {
 
 impl Filter for MirrorsStatus {
     fn best_synced_mirrors(&self) -> Mirrors {
-        let mirrors: Mirrors = self
+        let mut mirrors: Mirrors = self
             .urls
             .iter()
             .filter(|m| m.active)
@@ -77,6 +77,12 @@ impl Filter for MirrorsStatus {
             })
             .cloned()
             .collect();
+
+        // Sort by delay
+        mirrors.sort_by(|a, b| a.delay.cmp(&b.delay));
+
+        // Take only 100 mirrors
+        mirrors.truncate(100);
 
         mirrors
     }
@@ -90,9 +96,10 @@ trait Benchmark {
 impl Benchmark for Mirror {
     fn measure_duration(&mut self) {
         let url: String = [&self.url, "core/os/x86_64/core.db"].join("");
-        let client: reqwest::Client = reqwest::Client::builder()
-            .gzip(false)
-            .timeout(Duration::from_secs(10))
+        let client: reqwest::blocking::Client = reqwest::blocking::Client::builder()
+            .no_gzip()
+            .timeout(Duration::from_secs(5))
+            .http2_prior_knowledge()
             .build()
             .unwrap();
 
@@ -216,28 +223,28 @@ mod tests {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
         let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
         let mirrors: Mirrors = mirrors_status.best_synced_mirrors();
-        assert_eq!(mirrors.len(), 181);
+        assert_eq!(mirrors.len(), 100);
     }
 
     #[test]
     #[ignore]
     fn test_messure_duration() {
         let mut mirror = Mirror {
-            url: String::from("https://mirror.rackspace.com/archlinux/"),
+            url: String::from("https://archlinux.thaller.ws/"),
             protocol: String::from("https"),
-            last_sync: Some(String::from("2019-09-21T21:29:45Z")),
+            last_sync: Some(String::from("2019-09-21T22:19:02Z")),
             completion_pct: 1.0,
-            delay: Some(3941),
-            duration_avg: Some(0.427_642_525_458_822),
-            duration_stddev: Some(0.219_875_688_325_123),
-            score: Some(1.742_240_436_006_167_2),
+            delay: Some(962),
+            duration_avg: Some(0.575_974_759_367_323),
+            duration_stddev: Some(0.454_679_008_118),
+            score: Some(1.297_875_989_707_545_1),
             active: true,
-            country: String::from(""),
-            country_code: String::from(""),
+            country: String::from("Germany"),
+            country_code: String::from("DE"),
             isos: true,
             ipv4: true,
-            ipv6: false,
-            details: String::from("https://www.archlinux.or…rors/rackspace.com/1316/"),
+            ipv6: true,
+            details: String::from("https://www.archlinux.org/mirrors/thaller.ws/919/"),
             transfer_rate: None,
             weighted_score: None,
         };
@@ -260,7 +267,7 @@ mod tests {
         mirrors.score();
         let sum: f64 = mirrors.iter().map(|m| m.weighted_score.unwrap()).sum();
         assert!(
-            (sum - 313.891_174_134_780_67).abs() < std::f64::EPSILON,
+            (sum - 67.038_115_183_421_11).abs() < std::f64::EPSILON,
             "sum = {}",
             sum
         );
@@ -279,7 +286,7 @@ mod tests {
 
         let first: f64 = mirrors.first().unwrap().weighted_score.unwrap();
         assert!(
-            (first - 3.338_870_559_173_505).abs() < std::f64::EPSILON,
+            (first - 1.055_667_912_102_490_1).abs() < std::f64::EPSILON,
             "first weighted score = {}",
             first
         );
