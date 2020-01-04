@@ -78,7 +78,7 @@ impl Filter for MirrorsStatus {
             .cloned()
             .collect();
 
-        // Sort by delay
+        // Sort by delay value ascending
         mirrors.sort_by(|a, b| a.delay.cmp(&b.delay));
 
         // Take only 100 mirrors
@@ -223,7 +223,34 @@ mod tests {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
         let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
         let mirrors: Mirrors = mirrors_status.best_synced_mirrors();
-        assert_eq!(mirrors.len(), 100);
+
+        mirrors.iter().for_each(|m| {
+            // Only active mirror
+            assert!(m.active);
+
+            // Only protocol HTTP/HTTPS
+            assert!(m.protocol == "http" || m.protocol == "https");
+
+            // 100% sync
+            assert!((m.completion_pct - 1.0).abs() < std::f64::EPSILON);
+
+            // delay < 3600
+            assert_ne!(m.delay, None);
+            assert!(m.delay.unwrap() < 3600);
+        });
+
+        // Sort by delay value ascending
+        for n in 1..mirrors.len() {
+            assert!(mirrors[n - 1].delay <= mirrors[n].delay);
+        }
+
+        // Ensure only 100 mirrors returned
+        assert_eq!(
+            mirrors.len(),
+            100,
+            "Number of mirrors returned = {}",
+            mirrors.len()
+        );
     }
 
     #[test]
@@ -284,6 +311,7 @@ mod tests {
         mirrors.score();
         mirrors.sort_by_weighted_score();
 
+        // 1st mirror
         let first: f64 = mirrors.first().unwrap().weighted_score.unwrap();
         assert!(
             (first - 1.055_667_912_102_490_1).abs() < std::f64::EPSILON,
@@ -291,12 +319,18 @@ mod tests {
             first
         );
 
+        // latest mirror
         let last: f64 = mirrors.last().unwrap().weighted_score.unwrap();
         assert!(
             (last - 0.0_f64).abs() < std::f64::EPSILON,
             "last weighted score = {}",
             last
         );
+
+        // sort by weighted score descending
+        for n in 1..mirrors.len() {
+            assert!(mirrors[n - 1].weighted_score >= mirrors[n].weighted_score);
+        }
     }
 
     #[test]
