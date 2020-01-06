@@ -17,7 +17,7 @@ publish = false
 structopt = { version = "0.3.7", default-features = false }
 log = "0.4.8"
 env_logger = "0.7.1"
-reqwest = { version = "0.10.0", features = ["blocking", "json"] }
+reqwest = { version = "0.10.0", features = ["blocking", "json", "rustls-tls"] }
 serde = "1.0.104"
 serde_derive = "1.0.104"
 serde_json = "1.0.44"

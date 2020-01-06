@@ -98,8 +98,10 @@ impl Benchmark for Mirror {
         let url: String = [&self.url, "core/os/x86_64/core.db"].join("");
         let client: reqwest::blocking::Client = reqwest::blocking::Client::builder()
             .no_gzip()
-            .timeout(Duration::from_secs(5))
-            .http2_prior_knowledge()
+            .no_proxy()
+            .timeout(Duration::from_secs(10))
+            .danger_accept_invalid_certs(true)
+            .use_rustls_tls()
             .build()
             .unwrap();
 
@@ -256,31 +258,14 @@ mod tests {
     #[test]
     #[ignore]
     fn test_messure_duration() {
-        let mut mirror = Mirror {
-            url: String::from("https://archlinux.thaller.ws/"),
-            protocol: String::from("https"),
-            last_sync: Some(String::from("2019-09-21T22:19:02Z")),
-            completion_pct: 1.0,
-            delay: Some(962),
-            duration_avg: Some(0.575_974_759_367_323),
-            duration_stddev: Some(0.454_679_008_118),
-            score: Some(1.297_875_989_707_545_1),
-            active: true,
-            country: String::from("Germany"),
-            country_code: String::from("DE"),
-            isos: true,
-            ipv4: true,
-            ipv6: true,
-            details: String::from("https://www.archlinux.org/mirrors/thaller.ws/919/"),
-            transfer_rate: None,
-            weighted_score: None,
-        };
-        mirror.measure_duration();
-        assert_ne!(
-            mirror.transfer_rate, None,
-            "transfer_rate = {:?}",
-            mirror.transfer_rate
-        );
+        let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
+        let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
+        let mut mirrors: Mirrors = mirrors_status.best_synced_mirrors();
+        mirrors.truncate(30);
+        mirrors.measure_duration();
+        mirrors.iter().for_each(|m| {
+            assert_ne!(m.transfer_rate, None, "Failed host = {}", m.url);
+        });
     }
 
     #[test]
