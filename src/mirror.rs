@@ -256,7 +256,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_messure_duration() {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
         let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
