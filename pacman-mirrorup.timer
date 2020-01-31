@@ -1,7 +1,5 @@
 [Unit]
 Description=mirrorlist update timer
-Wants=network-online.target
-After=network-online.target
 
 [Timer]
 OnCalendar=weekly
@@ -9,4 +7,4 @@ AccuracySec=1h
 Persistent=true
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=timers.target
