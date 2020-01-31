@@ -1,6 +1,6 @@
 [package]
 name = "pacman-mirrorup"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Bhanupong Petchlert <bpetlert@gmail.com>"]
 description = "A program to retrieve the best and latest Pacman mirror list based on user's geography"
 documentation = "https://github.com/bpetlert/pacman-mirrorup"
