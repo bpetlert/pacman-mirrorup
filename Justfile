@@ -17,3 +17,13 @@ release version:
   git add Cargo.lock Cargo.toml PKGBUILD.aur PKGBUILD.local
   git commit --message="chore(release): {{version}}"
   git tag --sign --annotate {{version}} --message="version {{version}}" --edit
+
+test case:
+  cargo test -- {{case}} --nocapture
+
+update-deps:
+  cargo upgrade
+  cargo update
+
+makepkg:
+  makepkg -p PKGBUILD.local
