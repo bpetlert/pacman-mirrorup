@@ -3,7 +3,7 @@ use chrono;
 use csv;
 use rayon::prelude::*;
 use reqwest::{self, StatusCode};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
