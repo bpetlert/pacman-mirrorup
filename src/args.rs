@@ -75,7 +75,10 @@ mod tests {
                 "20",
                 "--stats-file",
                 "/tmp/stats",
-                "-vvvv"
+                "--verbose",
+                "--verbose",
+                "--verbose",
+                "--verbose"
             ]))
         );
 
