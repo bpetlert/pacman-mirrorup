@@ -24,7 +24,9 @@ weighted using transfer rate and then select the best N mirrors.
 
 ### Arch Linux
 
-Build and install arch package from source:
+It is available on AUR as
+[pacman-mirrorup](https://aur.archlinux.org/packages/pacman-mirrorup/).
+To build and install arch package from GIT source:
 
 ``` bash
 $ git clone https://github.com/bpetlert/pacman-mirrorup.git
