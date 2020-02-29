@@ -2,6 +2,7 @@ use anyhow::{anyhow, Result};
 use chrono;
 use csv;
 use rayon::prelude::*;
+use reqwest::blocking::Client;
 use reqwest::{self, StatusCode};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
@@ -9,6 +10,15 @@ use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
+
+static APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+    " (",
+    env!("CARGO_PKG_HOMEPAGE"),
+    ")"
+);
 
 #[derive(Deserialize, Debug)]
 pub struct MirrorsStatus {
@@ -51,7 +61,14 @@ impl MirrorsStatus {
     where
         T: reqwest::IntoUrl,
     {
-        let response = reqwest::blocking::get(url)?;
+        let client = Client::builder()
+            .user_agent(APP_USER_AGENT)
+            .gzip(true)
+            .http2_prior_knowledge()
+            .tcp_nodelay()
+            .use_rustls_tls()
+            .build()?;
+        let response = client.get(url).send()?;
         let mirrors_status: MirrorsStatus = response.json()?;
         Ok(mirrors_status)
     }
@@ -103,11 +120,13 @@ trait Benchmark {
 impl Benchmark for Mirror {
     fn measure_duration(&mut self) {
         let url: String = [&self.url, "core/os/x86_64/core.db"].join("");
-        let client: reqwest::blocking::Client = reqwest::blocking::Client::builder()
+        let client = Client::builder()
+            .user_agent(APP_USER_AGENT)
             .no_gzip()
             .no_proxy()
             .timeout(Duration::from_secs(10))
             .danger_accept_invalid_certs(true)
+            .tcp_nodelay()
             .use_rustls_tls()
             .build()
             .unwrap();
