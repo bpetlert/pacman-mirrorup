@@ -1,6 +1,8 @@
 # pacman-mirrorup
 
 [![Release](https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prereleases&label=release&style=flat-square)](https://github.com/bpetlert/pacman-mirrorup/releases/latest)
+[![AUR:
+pacman-mirrorup](https://img.shields.io/aur/version/pacman-mirrorup?style=flat-square)](https://aur.archlinux.org/packages/pacman-mirrorup/)
 [![License:
 MIT](https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-square)](./LICENSE)
 
