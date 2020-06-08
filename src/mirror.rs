@@ -65,7 +65,6 @@ impl MirrorsStatus {
             .user_agent(APP_USER_AGENT)
             .gzip(true)
             .http2_prior_knowledge()
-            .tcp_nodelay()
             .use_rustls_tls()
             .build()?;
         let response = client.get(url).send()?;
@@ -126,7 +125,6 @@ impl Benchmark for Mirror {
             .no_proxy()
             .timeout(Duration::from_secs(10))
             .danger_accept_invalid_certs(true)
-            .tcp_nodelay()
             .use_rustls_tls()
             .build()
             .unwrap();
@@ -351,7 +349,7 @@ mod tests {
         let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
         let result = mirrors_status.best_synced_mirrors();
         let mut mirrors: Mirrors = result.unwrap();
-        mirrors.truncate(30);
+        mirrors.truncate(10);
         mirrors.measure_duration();
         mirrors.iter().for_each(|m| {
             assert_ne!(m.transfer_rate, None, "Failed host = {}", m.url);
