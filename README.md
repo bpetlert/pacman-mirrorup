@@ -1,4 +1,5 @@
-# pacman-mirrorup
+pacman-mirrorup
+===============
 
 [![Release](https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prereleases&label=release&style=flat-square)](https://github.com/bpetlert/pacman-mirrorup/releases/latest)
 [![AUR:
@@ -22,7 +23,8 @@ To take user's geography into consideration. All filtered mirrors are
 tested data transfer rate. The mirror's score from original data is
 weighted using transfer rate and then select the best N mirrors.
 
-## Installation
+Installation
+------------
 
 ### Arch Linux
 
@@ -47,10 +49,11 @@ $ systemctl enable pacman-mirrorup.timer
 $ systemctl start pacman-mirrorup.timer
 ```
 
-## Configuration
+Configuration
+-------------
 
-To change the options of pacman-mirrorup service, run `systemctl edit
-pacman-mirrorup.service`
+To change the options of pacman-mirrorup service, run
+`systemctl edit pacman-mirrorup.service`
 
 ``` ini
 /etc/systemd/system/pacman-mirrorup.service.d/override.conf
@@ -62,32 +65,34 @@ Environment='MIRRORUP_ARGS=-v --output-file /etc/pacman.d/mirrorlist --threads 2
 
 Supported options are:
 
-  - `-m`, `--mirrors <mirrors>` Limit the list to the n mirrors with the
+-   `-m`, `--mirrors <mirrors>` Limit the list to the n mirrors with the
     highest score. \[default: 10\]
-  - `-o`, `--output-file <output-file>` Mirror list output file
-  - `-S`, `--source-url <source-url>` Arch Linux mirrors status's data
+-   `-o`, `--output-file <output-file>` Mirror list output file
+-   `-S`, `--source-url <source-url>` Arch Linux mirrors status's data
     source \[default: `https://www.archlinux.org/mirrors/status/json/`\]
-  - `-s`, `--stats-file <stats-file>` Statistics output file
-  - `-T`, `--threads <threads>` The maximum number of threads to use
+-   `-s`, `--stats-file <stats-file>` Statistics output file
+-   `-T`, `--threads <threads>` The maximum number of threads to use
     when measure transfer rate \[default: 5\]
-  - `-v`, `--verbose` Increment verbosity level once per call. Default
+-   `-v`, `--verbose` Increment verbosity level once per call. Default
     is showing error.
-      - `-v`: warn
-      - `-vv`: info
-      - `-vvv`: debug
-      - `-vvvv`: trace
+    -   `-v`: warn
+    -   `-vv`: info
+    -   `-vvv`: debug
+    -   `-vvvv`: trace
 
-To change the options of pacman-mirrorup timer, run `systemctl edit
-pacman-mirrorup.timer`
+To change the options of pacman-mirrorup timer, run
+`systemctl edit pacman-mirrorup.timer`
 
 ``` ini
 /etc/systemd/system/pacman-mirrorup.timer.d/override.conf
 -------------------------------------------------------------------------
 
 [Timer]
+OnCalendar=
 OnCalendar=daily
 ```
 
-## License
+License
+-------
 
 **[MIT license](./LICENSE)**

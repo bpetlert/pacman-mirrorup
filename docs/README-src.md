@@ -71,6 +71,7 @@ To change the options of pacman-mirrorup timer, run `systemctl edit pacman-mirro
 -------------------------------------------------------------------------
 
 [Timer]
+OnCalendar=
 OnCalendar=daily
 ```
 
