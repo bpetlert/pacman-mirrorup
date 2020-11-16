@@ -17,8 +17,8 @@ sha256sums=('b60e7ff675084ce363cc967e25839b73cdb97df3ae9007b490809725b0a0f6c2')
 build() {
   cd "${pkgname}-${pkgver}"
 
-  # Ignore target-dir in ~/.cargo/config, reset it to default: "target".
-  cargo build --release --locked --target-dir target
+  # Ignore target-dir in ~/.cargo/config.toml, reset it to default: "target".
+  cargo build --release --locked --target-dir=target
 }
 
 package() {
