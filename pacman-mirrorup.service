@@ -1,11 +1,16 @@
 [Unit]
 Description=mirrorlist update
+StartLimitIntervalSec=26min
+StartLimitBurst=5
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Type=oneshot
 User=root
+Restart=on-failure
+RestartSec=5min
+RestartPreventExitStatus=6 SIGABRT
 Environment='MIRRORUP_ARGS=-v --output-file /etc/pacman.d/mirrorlist'
 
 # backup old /etc/pacman.d/mirrorlist
