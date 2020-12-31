@@ -112,13 +112,20 @@ impl Filter for MirrorsStatus {
 }
 
 trait Benchmark {
-    /// Measure time (in seconds) it took to connect (from user's geography) and retrive the 'core/os/x86_64/core.db' file from the given URL.
-    fn measure_duration(&mut self);
+    /// Measure time (in seconds) it took to connect (from user's geography)
+    /// and retrive the '[core,community,extra]/os/x86_64/[core,community,extra].db' file from the given URL.
+    fn measure_duration(&mut self, target_db: &str);
 }
 
 impl Benchmark for Mirror {
-    fn measure_duration(&mut self) {
-        let url: String = [&self.url, "core/os/x86_64/core.db"].join("");
+    fn measure_duration(&mut self, target_db: &str) {
+        let url: String = match target_db {
+            "core" => [&self.url, "core/os/x86_64/core.db"].join(""),
+            "community" => [&self.url, "community/os/x86_64/community.db"].join(""),
+            "extra" => [&self.url, "extra/os/x86_64/extra.db"].join(""),
+            _ => [&self.url, "core/os/x86_64/core.db"].join(""),
+        };
+
         let client = Client::builder()
             .user_agent(APP_USER_AGENT)
             .no_gzip()
@@ -147,9 +154,9 @@ impl Benchmark for Mirror {
 }
 
 impl Benchmark for Mirrors {
-    fn measure_duration(&mut self) {
+    fn measure_duration(&mut self, target_db: &str) {
         self.par_iter_mut().for_each(|mirror| {
-            mirror.measure_duration();
+            mirror.measure_duration(target_db);
         });
     }
 }
@@ -215,13 +222,13 @@ impl Statistics for Mirrors {
 
 pub trait Evaluation {
     /// Returns the n best mirrors based on mirror score
-    fn evaluate(&self, n: u32) -> Result<Mirrors>;
+    fn evaluate(&self, n: u32, target_db: &str) -> Result<Mirrors>;
 }
 
 impl Evaluation for Mirrors {
-    fn evaluate(&self, n: u32) -> Result<Mirrors> {
+    fn evaluate(&self, n: u32, target_db: &str) -> Result<Mirrors> {
         let mut mirrors: Mirrors = self.clone();
-        mirrors.measure_duration();
+        mirrors.measure_duration(target_db);
         mirrors.score();
         mirrors.sort_by_weighted_score();
         mirrors.select(n);
@@ -350,7 +357,7 @@ mod tests {
         let result = mirrors_status.best_synced_mirrors();
         let mut mirrors: Mirrors = result.unwrap();
         mirrors.truncate(10);
-        mirrors.measure_duration();
+        mirrors.measure_duration("core");
         mirrors.iter().for_each(|m| {
             assert_ne!(m.transfer_rate, None, "Failed host = {}", m.url);
         });

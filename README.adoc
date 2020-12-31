@@ -53,7 +53,7 @@ To change the options of pacman-mirrorup service, run `systemctl edit pacman-mir
 [source,ini]
 ----
 [Service]
-Environment='MIRRORUP_ARGS=-v --output-file /etc/pacman.d/mirrorlist --threads 20'
+Environment='MIRRORUP_ARGS=-v --output-file /etc/pacman.d/mirrorlist --threads 10'
 ----
 
 Supported options are:
@@ -62,6 +62,7 @@ Supported options are:
 [default: 10]
 * `-o`, `--output-file <output-file>` Mirror list output file
 * `-S`, `--source-url <source-url>` Arch Linux mirrors status's data source [default: `+https://www.archlinux.org/mirrors/status/json/+`]
+* `-t`, `--target-db <target-db>` Choose speed test target database file (core, community, or extra) [default: community]
 * `-s`, `--stats-file <stats-file>` Statistics output file
 * `-T`, `--threads <threads>` The maximum number of threads to use when measure transfer rate [default: 5]
 * `-v`, `--verbose` Increment verbosity level once per call.

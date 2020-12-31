@@ -12,6 +12,10 @@ pub struct Arguments {
     )]
     pub source_url: String,
 
+    /// Choose speed test target database file (core, community, or extra)
+    #[structopt(short = "t", long = "target-db", default_value = "community")]
+    pub target_db: String,
+
     /// Mirror list output file
     #[structopt(short = "o", long = "output-file", parse(from_os_str))]
     pub output_file: Option<PathBuf>,
@@ -44,6 +48,7 @@ mod tests {
         assert_eq!(
             Arguments {
                 source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
+                target_db: "community".to_owned(),
                 output_file: None,
                 mirrors: 10,
                 threads: 5,
@@ -57,6 +62,7 @@ mod tests {
         assert_eq!(
             Arguments {
                 source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
+                target_db: "community".to_owned(),
                 output_file: Some(PathBuf::from("/tmp/mirrorlist")),
                 mirrors: 20,
                 threads: 20,
@@ -67,6 +73,8 @@ mod tests {
                 "test",
                 "--source-url",
                 "https://www.archlinux.org/mirrors/status/json/",
+                "--target-db",
+                "community",
                 "--output-file",
                 "/tmp/mirrorlist",
                 "--mirrors",
@@ -86,6 +94,7 @@ mod tests {
         assert_eq!(
             Arguments {
                 source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
+                target_db: "community".to_owned(),
                 output_file: Some(PathBuf::from("/tmp/mirrorlist")),
                 mirrors: 20,
                 threads: 20,
@@ -96,6 +105,8 @@ mod tests {
                 "test",
                 "-S",
                 "https://www.archlinux.org/mirrors/status/json/",
+                "-t",
+                "community",
                 "-o",
                 "/tmp/mirrorlist",
                 "-m",

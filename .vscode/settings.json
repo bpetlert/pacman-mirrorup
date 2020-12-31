@@ -8,6 +8,8 @@
     "pkgver",
     "powf",
     "rsync",
-    "stddev"
+    "rustls",
+    "stddev",
+    "structopt"
   ]
 }
