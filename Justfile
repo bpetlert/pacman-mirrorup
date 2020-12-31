@@ -36,3 +36,4 @@ update-deps:
 # Crate Arch package from GIT source
 makepkg:
   makepkg -p PKGBUILD.local
+  git co PKGBUILD.local
