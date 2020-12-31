@@ -9,6 +9,7 @@
     "powf",
     "rsync",
     "rustls",
+    "serde",
     "stddev",
     "structopt"
   ]

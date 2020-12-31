@@ -49,7 +49,7 @@ fn run_app() -> Result<()> {
     let mirrors_status: MirrorsStatus = MirrorsStatus::from_online_json(&arguments.source_url)?;
     let best_synced_mirrors: Mirrors = mirrors_status.best_synced_mirrors()?;
     let best_mirrors: Mirrors =
-        best_synced_mirrors.evaluate(arguments.mirrors, &arguments.target_db)?;
+        best_synced_mirrors.evaluate(arguments.mirrors, arguments.target_db)?;
 
     if let Some(output_file) = &arguments.output_file {
         // Write to file

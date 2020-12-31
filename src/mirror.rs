@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use chrono;
+use clap::arg_enum;
 use csv;
 use rayon::prelude::*;
 use reqwest::blocking::Client;
@@ -19,6 +20,15 @@ static APP_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_HOMEPAGE"),
     ")"
 );
+
+arg_enum! {
+    #[derive(PartialEq, Debug, Clone, Copy)]
+        pub enum TargetDb {
+            Core,
+            Community,
+            Extra,
+    }
+}
 
 #[derive(Deserialize, Debug)]
 pub struct MirrorsStatus {
@@ -114,16 +124,15 @@ impl Filter for MirrorsStatus {
 trait Benchmark {
     /// Measure time (in seconds) it took to connect (from user's geography)
     /// and retrive the '[core,community,extra]/os/x86_64/[core,community,extra].db' file from the given URL.
-    fn measure_duration(&mut self, target_db: &str);
+    fn measure_duration(&mut self, target_db: TargetDb);
 }
 
 impl Benchmark for Mirror {
-    fn measure_duration(&mut self, target_db: &str) {
+    fn measure_duration(&mut self, target_db: TargetDb) {
         let url: String = match target_db {
-            "core" => [&self.url, "core/os/x86_64/core.db"].join(""),
-            "community" => [&self.url, "community/os/x86_64/community.db"].join(""),
-            "extra" => [&self.url, "extra/os/x86_64/extra.db"].join(""),
-            _ => [&self.url, "core/os/x86_64/core.db"].join(""),
+            TargetDb::Core => [&self.url, "core/os/x86_64/core.db"].join(""),
+            TargetDb::Community => [&self.url, "community/os/x86_64/community.db"].join(""),
+            TargetDb::Extra => [&self.url, "extra/os/x86_64/extra.db"].join(""),
         };
 
         let client = Client::builder()
@@ -154,7 +163,7 @@ impl Benchmark for Mirror {
 }
 
 impl Benchmark for Mirrors {
-    fn measure_duration(&mut self, target_db: &str) {
+    fn measure_duration(&mut self, target_db: TargetDb) {
         self.par_iter_mut().for_each(|mirror| {
             mirror.measure_duration(target_db);
         });
@@ -222,11 +231,11 @@ impl Statistics for Mirrors {
 
 pub trait Evaluation {
     /// Returns the n best mirrors based on mirror score
-    fn evaluate(&self, n: u32, target_db: &str) -> Result<Mirrors>;
+    fn evaluate(&self, n: u32, target_db: TargetDb) -> Result<Mirrors>;
 }
 
 impl Evaluation for Mirrors {
-    fn evaluate(&self, n: u32, target_db: &str) -> Result<Mirrors> {
+    fn evaluate(&self, n: u32, target_db: TargetDb) -> Result<Mirrors> {
         let mut mirrors: Mirrors = self.clone();
         mirrors.measure_duration(target_db);
         mirrors.score();
@@ -357,7 +366,7 @@ mod tests {
         let result = mirrors_status.best_synced_mirrors();
         let mut mirrors: Mirrors = result.unwrap();
         mirrors.truncate(10);
-        mirrors.measure_duration("core");
+        mirrors.measure_duration(TargetDb::Core);
         mirrors.iter().for_each(|m| {
             assert_ne!(m.transfer_rate, None, "Failed host = {}", m.url);
         });

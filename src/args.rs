@@ -1,3 +1,4 @@
+use crate::mirror::TargetDb;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -12,9 +13,14 @@ pub struct Arguments {
     )]
     pub source_url: String,
 
-    /// Choose speed test target database file (core, community, or extra)
-    #[structopt(short = "t", long = "target-db", default_value = "community")]
-    pub target_db: String,
+    /// Choose speed test target database file (Core, Community, or Extra)
+    #[structopt(
+        short = "t",
+        long = "target-db",
+        case_insensitive = true,
+        default_value = "Community"
+    )]
+    pub target_db: TargetDb,
 
     /// Mirror list output file
     #[structopt(short = "o", long = "output-file", parse(from_os_str))]
@@ -48,7 +54,7 @@ mod tests {
         assert_eq!(
             Arguments {
                 source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
-                target_db: "community".to_owned(),
+                target_db: TargetDb::Community,
                 output_file: None,
                 mirrors: 10,
                 threads: 5,
@@ -62,7 +68,7 @@ mod tests {
         assert_eq!(
             Arguments {
                 source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
-                target_db: "community".to_owned(),
+                target_db: TargetDb::Community,
                 output_file: Some(PathBuf::from("/tmp/mirrorlist")),
                 mirrors: 20,
                 threads: 20,
@@ -94,7 +100,7 @@ mod tests {
         assert_eq!(
             Arguments {
                 source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
-                target_db: "community".to_owned(),
+                target_db: TargetDb::Community,
                 output_file: Some(PathBuf::from("/tmp/mirrorlist")),
                 mirrors: 20,
                 threads: 20,

@@ -62,7 +62,7 @@ Supported options are:
 [default: 10]
 * `-o`, `--output-file <output-file>` Mirror list output file
 * `-S`, `--source-url <source-url>` Arch Linux mirrors status's data source [default: `+https://www.archlinux.org/mirrors/status/json/+`]
-* `-t`, `--target-db <target-db>` Choose speed test target database file (core, community, or extra) [default: community]
+* `-t`, `--target-db <target-db>` Choose speed test target database file (Core, Community, or Extra) [default: Community]
 * `-s`, `--stats-file <stats-file>` Statistics output file
 * `-T`, `--threads <threads>` The maximum number of threads to use when measure transfer rate [default: 5]
 * `-v`, `--verbose` Increment verbosity level once per call.
