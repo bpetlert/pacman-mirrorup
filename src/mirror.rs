@@ -2,9 +2,10 @@ use anyhow::{anyhow, Result};
 use chrono;
 use clap::arg_enum;
 use csv;
+use log::{debug, info};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
-use reqwest::{self, StatusCode};
+use reqwest::{self};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::fs::OpenOptions;
@@ -124,16 +125,18 @@ impl Filter for MirrorsStatus {
 trait Benchmark {
     /// Measure time (in seconds) it took to connect (from user's geography)
     /// and retrive the '[core,community,extra]/os/x86_64/[core,community,extra].db' file from the given URL.
-    fn measure_duration(&mut self, target_db: TargetDb);
+    fn measure_duration(&mut self, target_db: TargetDb) -> Result<()>;
 }
 
 impl Benchmark for Mirror {
-    fn measure_duration(&mut self, target_db: TargetDb) {
+    fn measure_duration(&mut self, target_db: TargetDb) -> Result<()> {
         let url: String = match target_db {
             TargetDb::Core => [&self.url, "core/os/x86_64/core.db"].join(""),
             TargetDb::Community => [&self.url, "community/os/x86_64/community.db"].join(""),
             TargetDb::Extra => [&self.url, "extra/os/x86_64/extra.db"].join(""),
         };
+
+        self.transfer_rate = None;
 
         let client = Client::builder()
             .user_agent(APP_USER_AGENT)
@@ -142,31 +145,42 @@ impl Benchmark for Mirror {
             .timeout(Duration::from_secs(10))
             .danger_accept_invalid_certs(true)
             .use_rustls_tls()
-            .build()
-            .unwrap();
+            .build()?;
 
         let start = Instant::now();
-        let response = client.get(&url).send();
-        match response {
-            Ok(resp) => match resp.status() {
-                StatusCode::OK => {
-                    let duration: f64 = start.elapsed().as_millis() as f64;
-                    let transfer_time: f64 = duration / 1000.0_f64;
-                    let file_size: f64 = resp.content_length().unwrap() as f64;
-                    self.transfer_rate = Some(file_size / transfer_time);
+        let response = client.get(&url).send()?;
+        if response.status().is_success() {
+            let duration: f64 = start.elapsed().as_millis() as f64;
+            let transfer_time: f64 = duration / 1000.0_f64;
+
+            let file_size: f64 = match response.content_length() {
+                Some(fs) => fs as f64,
+                None => {
+                    debug!("Transfer Rate: {} => None", url);
+                    return Ok(());
                 }
-                _ => self.transfer_rate = None,
-            },
-            Err(_) => self.transfer_rate = None,
+            };
+
+            let transfer_rate = file_size / transfer_time;
+            self.transfer_rate = Some(transfer_rate);
+            debug!("Transfer Rate: {} => {}", url, transfer_rate);
+        } else {
+            debug!("Transfer Rate: {} => None", url);
         }
+
+        Ok(())
     }
 }
 
 impl Benchmark for Mirrors {
-    fn measure_duration(&mut self, target_db: TargetDb) {
+    fn measure_duration(&mut self, target_db: TargetDb) -> Result<()> {
         self.par_iter_mut().for_each(|mirror| {
-            mirror.measure_duration(target_db);
+            if let Err(err) = mirror.measure_duration(target_db) {
+                info!("{}", err);
+            }
         });
+
+        Ok(())
     }
 }
 
@@ -237,7 +251,7 @@ pub trait Evaluation {
 impl Evaluation for Mirrors {
     fn evaluate(&self, n: u32, target_db: TargetDb) -> Result<Mirrors> {
         let mut mirrors: Mirrors = self.clone();
-        mirrors.measure_duration(target_db);
+        let _ = mirrors.measure_duration(target_db);
         mirrors.score();
         mirrors.sort_by_weighted_score();
         mirrors.select(n);
@@ -366,7 +380,7 @@ mod tests {
         let result = mirrors_status.best_synced_mirrors();
         let mut mirrors: Mirrors = result.unwrap();
         mirrors.truncate(10);
-        mirrors.measure_duration(TargetDb::Core);
+        let _ = mirrors.measure_duration(TargetDb::Core);
         mirrors.iter().for_each(|m| {
             assert_ne!(m.transfer_rate, None, "Failed host = {}", m.url);
         });
