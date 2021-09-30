@@ -1,8 +1,6 @@
 use anyhow::{anyhow, Result};
 use log::LevelFilter;
 use log::{debug, error};
-use pretty_env_logger;
-use rayon;
 use std::env;
 use std::process;
 use structopt::StructOpt;
@@ -53,14 +51,14 @@ fn run_app() -> Result<()> {
 
     if let Some(output_file) = &arguments.output_file {
         // Write to file
-        best_mirrors.to_mirrorlist_file(&output_file, &arguments.source_url)?;
+        best_mirrors.to_mirrorlist_file(output_file, &arguments.source_url)?;
     } else {
         // Write to stdout
         print!("{}", &best_mirrors.to_pacman_mirror_list());
     }
 
     if let Some(stats_file) = &arguments.stats_file {
-        best_mirrors.to_csv(&stats_file)?;
+        best_mirrors.to_csv(stats_file)?;
     }
 
     Ok(())

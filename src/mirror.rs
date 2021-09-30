@@ -1,7 +1,5 @@
 use anyhow::{anyhow, Result};
-use chrono;
 use clap::arg_enum;
-use csv;
 use log::{debug, info};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
@@ -10,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
-use std::path::PathBuf;
+use std::path::Path;
 use std::time::{Duration, Instant};
 
 static APP_USER_AGENT: &str = concat!(
@@ -195,7 +193,7 @@ pub trait Statistics {
     fn select(&mut self, n: u32);
 
     /// Save evaluated mirrors to CSV file
-    fn to_csv(&self, path: &PathBuf) -> Result<()>;
+    fn to_csv(&self, path: &Path) -> Result<()>;
 }
 
 impl Statistics for Mirrors {
@@ -228,7 +226,7 @@ impl Statistics for Mirrors {
         self.truncate(n.try_into().unwrap());
     }
 
-    fn to_csv(&self, path: &PathBuf) -> Result<()> {
+    fn to_csv(&self, path: &Path) -> Result<()> {
         let file = OpenOptions::new()
             .write(true)
             .create(true)
@@ -269,7 +267,7 @@ pub trait ToPacmanMirrorList {
     fn to_pacman_mirror_list(&self) -> String;
 
     /// Write to mirrorlist file
-    fn to_mirrorlist_file(&self, path: &PathBuf, source_url: &str) -> Result<()>;
+    fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()>;
 
     fn header(&self, source_url: &str) -> String {
         let now = chrono::Local::now();
@@ -298,7 +296,7 @@ impl ToPacmanMirrorList for Mirror {
         format!("Server = {url}$repo/os/$arch", url = self.url)
     }
 
-    fn to_mirrorlist_file(&self, _path: &PathBuf, _source_url: &str) -> Result<()> {
+    fn to_mirrorlist_file(&self, _path: &Path, _source_url: &str) -> Result<()> {
         unreachable!()
     }
 }
@@ -312,7 +310,7 @@ impl ToPacmanMirrorList for Mirrors {
         list
     }
 
-    fn to_mirrorlist_file(&self, path: &PathBuf, source_url: &str) -> Result<()> {
+    fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()> {
         let file = OpenOptions::new()
             .write(true)
             .create(true)
@@ -320,7 +318,7 @@ impl ToPacmanMirrorList for Mirrors {
             .open(path)?;
         let mut file = BufWriter::new(file);
         file.write_all(self.header(source_url).as_bytes())?;
-        file.write_all(&self.to_pacman_mirror_list().as_bytes())?;
+        file.write_all(self.to_pacman_mirror_list().as_bytes())?;
         file.flush()?;
         Ok(())
     }
@@ -476,7 +474,7 @@ mod tests {
 
         // Check Mirrors
         for line in mirrors.to_pacman_mirror_list().lines() {
-            assert!(mirror_format.is_match(&line));
+            assert!(mirror_format.is_match(line));
         }
     }
 }
