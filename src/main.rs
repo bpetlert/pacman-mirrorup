@@ -1,8 +1,6 @@
 use anyhow::{anyhow, Result};
-use log::LevelFilter;
-use log::{debug, error};
-use std::env;
-use std::process;
+use log::{debug, error, LevelFilter};
+use std::{env, process};
 use structopt::StructOpt;
 
 mod args;
@@ -21,10 +19,14 @@ fn run_app() -> Result<()> {
         4 => LevelFilter::Trace,
         _ => LevelFilter::Trace,
     };
-    pretty_env_logger::formatted_builder()
-        .parse_filters(&env::var("MIRRORUP_LOG").unwrap_or_default())
-        .filter(None, log_level)
-        .init();
+
+    let mut log_builder = pretty_env_logger::formatted_builder();
+    if let Ok(value) = env::var("RUST_LOG") {
+        log_builder.parse_filters(&value);
+    } else {
+        log_builder.filter_level(log_level);
+    }
+    log_builder.init();
     debug!("Run with {:?}", arguments);
 
     if let Some(output_file) = &arguments.output_file {

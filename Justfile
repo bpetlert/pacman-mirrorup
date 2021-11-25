@@ -3,7 +3,7 @@
 
 # Run with debug log
 run-debug +ARGS='':
-  RUST_BACKTRACE=1 MIRRORUP_LOG=pacman_mirrorup=debug cargo run -- {{ARGS}}
+  RUST_BACKTRACE=1 RUST_LOG=pacman_mirrorup=debug cargo run -- {{ARGS}}
 
 # Run test
 test +CASES='':
