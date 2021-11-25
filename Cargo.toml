@@ -18,7 +18,7 @@ clap = { version = "2.33.3", default-features = false }
 structopt = { version = "0.3.25", default-features = false }
 log = "0.4.14"
 pretty_env_logger = "0.4.0"
-anyhow = "1.0.44"
+anyhow = "1.0.48"
 reqwest = { version = "0.11.6", features = [
   "blocking",
   "gzip",
@@ -26,7 +26,7 @@ reqwest = { version = "0.11.6", features = [
   "rustls-tls",
 ], default-features = false }
 serde = { version = "1.0.130", features = ["derive"] }
-serde_json = "1.0.68"
+serde_json = "1.0.72"
 rayon = "1.5.1"
 csv = "1.1.6"
 chrono = "0.4.19"
