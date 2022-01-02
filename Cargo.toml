@@ -1,24 +1,29 @@
 [package]
 name = "pacman-mirrorup"
 version = "0.5.0"
+
 authors = ["Bhanupong Petchlert <bpetlert@gmail.com>"]
+
 description = "A program to retrieve the best and latest Pacman mirror list based on user's geography"
 documentation = "https://github.com/bpetlert/pacman-mirrorup"
 homepage = "https://github.com/bpetlert/pacman-mirrorup"
-repository = "https://github.com/bpetlert/pacman-mirrorup"
-readme = "README.adoc"
 license = "MIT"
+readme = "README.adoc"
+repository = "https://github.com/bpetlert/pacman-mirrorup"
+
 edition = "2021"
 publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "2.33.3", default-features = false }
-structopt = { version = "0.3.25", default-features = false }
+anyhow = "1.0.48"
+chrono = "0.4.19"
+clap = { version = "3.0.5", features = ["derive"] }
+csv = "1.1.6"
 log = "0.4.14"
 pretty_env_logger = "0.4.0"
-anyhow = "1.0.48"
+rayon = "1.5.1"
 reqwest = { version = "0.11.6", features = [
   "blocking",
   "gzip",
@@ -27,9 +32,6 @@ reqwest = { version = "0.11.6", features = [
 ], default-features = false }
 serde = { version = "1.0.130", features = ["derive"] }
 serde_json = "1.0.72"
-rayon = "1.5.1"
-csv = "1.1.6"
-chrono = "0.4.19"
 
 [dev-dependencies]
 regex = "1.5.4"

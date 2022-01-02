@@ -1,52 +1,54 @@
 use crate::mirror::TargetDb;
+use clap::Parser;
 use std::path::PathBuf;
-use structopt::StructOpt;
 
-#[derive(StructOpt, PartialEq, Debug)]
-#[structopt(author, about)]
+#[derive(Parser, PartialEq, Debug)]
+#[clap(about, version, author)]
 pub struct Arguments {
     /// Arch Linux mirrors status's data source
-    #[structopt(
-        short = "S",
-        long = "source-url",
+    #[clap(
+        short = 'S',
+        long,
         default_value = "https://www.archlinux.org/mirrors/status/json/"
     )]
     pub source_url: String,
 
     /// Choose speed test target database file (Core, Community, or Extra)
-    #[structopt(
-        short = "t",
-        long = "target-db",
-        case_insensitive = true,
-        default_value = "Community"
+    #[clap(
+        short = 't',
+        long,
+        ignore_case = true,
+        default_value = "Community",
+        arg_enum
     )]
     pub target_db: TargetDb,
 
     /// Mirror list output file
-    #[structopt(short = "o", long = "output-file", parse(from_os_str))]
+    #[clap(short = 'o', long, parse(from_os_str))]
     pub output_file: Option<PathBuf>,
 
     /// Limit the list to the n mirrors with the highest score.
-    #[structopt(short = "m", long = "mirrors", default_value = "10")]
+    #[clap(short = 'm', long, default_value = "10")]
     pub mirrors: u32,
 
     /// The maximum number of threads to use when measure transfer rate
-    #[structopt(short = "T", long = "threads", default_value = "5")]
+    #[clap(short = 'T', long, default_value = "5")]
     pub threads: usize,
 
     /// Statistics output file
-    #[structopt(short = "s", long = "stats-file", parse(from_os_str))]
+    #[clap(short = 's', long, parse(from_os_str))]
     pub stats_file: Option<PathBuf>,
 
     /// Increment verbosity level once per call
     /// [error, -v: warn, -vv: info, -vvv: debug, -vvvv: trace]
-    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
+    #[clap(short = 'v', long, parse(from_occurrences))]
     pub verbose: u8,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use clap::{FromArgMatches, IntoApp};
 
     #[test]
     fn test_args() {
@@ -61,7 +63,8 @@ mod tests {
                 stats_file: None,
                 verbose: 0
             },
-            Arguments::from_clap(&Arguments::clap().get_matches_from(&["test",]))
+            Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec!["test"]))
+                .unwrap()
         );
 
         // Full long arguments
@@ -75,7 +78,7 @@ mod tests {
                 stats_file: Some(PathBuf::from("/tmp/stats")),
                 verbose: 4
             },
-            Arguments::from_clap(&Arguments::clap().get_matches_from(&[
+            Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
                 "test",
                 "--source-url",
                 "https://www.archlinux.org/mirrors/status/json/",
@@ -94,6 +97,7 @@ mod tests {
                 "--verbose",
                 "--verbose"
             ]))
+            .unwrap()
         );
 
         // Full short arguments
@@ -107,7 +111,7 @@ mod tests {
                 stats_file: Some(PathBuf::from("/tmp/stats")),
                 verbose: 4
             },
-            Arguments::from_clap(&Arguments::clap().get_matches_from(&[
+            Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
                 "test",
                 "-S",
                 "https://www.archlinux.org/mirrors/status/json/",
@@ -123,6 +127,7 @@ mod tests {
                 "/tmp/stats",
                 "-vvvv"
             ]))
+            .unwrap()
         );
     }
 }

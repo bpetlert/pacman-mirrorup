@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use clap::arg_enum;
 use log::{debug, info};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
@@ -20,23 +19,21 @@ static APP_USER_AGENT: &str = concat!(
     ")"
 );
 
-arg_enum! {
-    #[derive(PartialEq, Debug, Clone, Copy)]
-        pub enum TargetDb {
-            Core,
-            Community,
-            Extra,
-    }
+#[derive(clap::ArgEnum, PartialEq, Debug, Clone, Copy)]
+pub enum TargetDb {
+    Core,
+    Community,
+    Extra,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct MirrorsStatus {
-    cutoff: usize,
-    last_check: String,
-    num_checks: usize,
-    check_frequency: usize,
+    _cutoff: usize,
+    _last_check: String,
+    _num_checks: usize,
+    _check_frequency: usize,
     urls: Mirrors,
-    version: usize,
+    _version: usize,
 }
 
 #[derive(Default, Deserialize, Serialize, Clone, Debug)]

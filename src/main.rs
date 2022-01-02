@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
+use clap::Parser;
 use log::{debug, error, LevelFilter};
 use std::{env, process};
-use structopt::StructOpt;
 
 mod args;
 mod mirror;
@@ -10,7 +10,7 @@ use args::Arguments;
 use mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMirrorList};
 
 fn run_app() -> Result<()> {
-    let arguments = Arguments::from_args();
+    let arguments = Arguments::parse();
     let log_level = match arguments.verbose {
         0 => LevelFilter::Error,
         1 => LevelFilter::Warn,
