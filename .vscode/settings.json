@@ -1,8 +1,8 @@
 {
   "cSpell.words": [
-    "Deserializing",
     "adoc",
     "clippy",
+    "Deserializing",
     "isos",
     "mirrorup",
     "pkgver",
@@ -10,6 +10,7 @@
     "rsync",
     "rustls",
     "serde",
+    "SIGABRT",
     "stddev",
     "structopt"
   ]
