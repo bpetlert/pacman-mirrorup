@@ -27,13 +27,14 @@ pub enum TargetDb {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 pub struct MirrorsStatus {
-    _cutoff: usize,
-    _last_check: String,
-    _num_checks: usize,
-    _check_frequency: usize,
+    cutoff: usize,
+    last_check: String,
+    num_checks: usize,
+    check_frequency: usize,
     urls: Mirrors,
-    _version: usize,
+    version: usize,
 }
 
 #[derive(Default, Deserialize, Serialize, Clone, Debug)]
