@@ -1,8 +1,9 @@
 use crate::mirror::TargetDb;
 use clap::Parser;
+use clap_verbosity_flag::Verbosity;
 use std::path::PathBuf;
 
-#[derive(Parser, PartialEq, Debug)]
+#[derive(Parser, Debug)]
 #[clap(about, version, author)]
 pub struct Arguments {
     /// Arch Linux mirrors status's data source
@@ -39,10 +40,8 @@ pub struct Arguments {
     #[clap(short = 's', long, parse(from_os_str))]
     pub stats_file: Option<PathBuf>,
 
-    /// Increment verbosity level once per call
-    /// [error, -v: warn, -vv: info, -vvv: debug, -vvvv: trace]
-    #[clap(short = 'v', long, parse(from_occurrences))]
-    pub verbose: u8,
+    #[clap(flatten)]
+    pub verbose: Verbosity,
 }
 
 #[cfg(test)]
@@ -53,81 +52,86 @@ mod tests {
     #[test]
     fn test_args() {
         // Default arguments
-        assert_eq!(
-            Arguments {
-                source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
-                target_db: TargetDb::Community,
-                output_file: None,
-                mirrors: 10,
-                threads: 5,
-                stats_file: None,
-                verbose: 0
-            },
+        let args =
             Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec!["test"]))
-                .unwrap()
+                .unwrap();
+        assert_eq!(
+            args.source_url,
+            "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
+        assert_eq!(args.target_db, TargetDb::Community);
+        assert_eq!(args.output_file, None);
+        assert_eq!(args.mirrors, 10);
+        assert_eq!(args.threads, 5);
+        assert_eq!(args.stats_file, None);
+        assert_eq!(args.verbose.log_level(), Some(log::Level::Error));
 
         // Full long arguments
+        let args = Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
+            "test",
+            "--source-url",
+            "https://www.archlinux.org/mirrors/status/json/",
+            "--target-db",
+            "community",
+            "--output-file",
+            "/tmp/mirrorlist",
+            "--mirrors",
+            "20",
+            "--threads",
+            "20",
+            "--stats-file",
+            "/tmp/stats",
+            "--verbose",
+            "--verbose",
+            "--verbose",
+            "--verbose",
+        ]))
+        .unwrap();
         assert_eq!(
-            Arguments {
-                source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
-                target_db: TargetDb::Community,
-                output_file: Some(PathBuf::from("/tmp/mirrorlist")),
-                mirrors: 20,
-                threads: 20,
-                stats_file: Some(PathBuf::from("/tmp/stats")),
-                verbose: 4
-            },
-            Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
-                "test",
-                "--source-url",
-                "https://www.archlinux.org/mirrors/status/json/",
-                "--target-db",
-                "community",
-                "--output-file",
-                "/tmp/mirrorlist",
-                "--mirrors",
-                "20",
-                "--threads",
-                "20",
-                "--stats-file",
-                "/tmp/stats",
-                "--verbose",
-                "--verbose",
-                "--verbose",
-                "--verbose"
-            ]))
-            .unwrap()
+            args.source_url,
+            "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
+        assert_eq!(args.target_db, TargetDb::Community);
+        assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
+        assert_eq!(args.mirrors, 20);
+        assert_eq!(args.threads, 20);
+        assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
+        assert_eq!(args.verbose.log_level(), Some(log::Level::Trace));
 
         // Full short arguments
+        let args = Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
+            "test",
+            "-S",
+            "https://www.archlinux.org/mirrors/status/json/",
+            "-t",
+            "community",
+            "-o",
+            "/tmp/mirrorlist",
+            "-m",
+            "20",
+            "-T",
+            "20",
+            "-s",
+            "/tmp/stats",
+            "-vvvv",
+        ]))
+        .unwrap();
         assert_eq!(
-            Arguments {
-                source_url: "https://www.archlinux.org/mirrors/status/json/".to_string(),
-                target_db: TargetDb::Community,
-                output_file: Some(PathBuf::from("/tmp/mirrorlist")),
-                mirrors: 20,
-                threads: 20,
-                stats_file: Some(PathBuf::from("/tmp/stats")),
-                verbose: 4
-            },
-            Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
-                "test",
-                "-S",
-                "https://www.archlinux.org/mirrors/status/json/",
-                "-t",
-                "community",
-                "-o",
-                "/tmp/mirrorlist",
-                "-m",
-                "20",
-                "-T",
-                "20",
-                "-s",
-                "/tmp/stats",
-                "-vvvv"
-            ]))
-            .unwrap()
+            args.source_url,
+            "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
+        assert_eq!(args.target_db, TargetDb::Community);
+        assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
+        assert_eq!(args.mirrors, 20);
+        assert_eq!(args.threads, 20);
+        assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
+        assert_eq!(args.verbose.log_level(), Some(log::Level::Trace));
+
+        // Quiet flag
+        let args = Arguments::from_arg_matches(
+            &Arguments::into_app().get_matches_from(vec!["test", "-qq"]),
+        )
+        .unwrap();
+        assert_eq!(args.verbose.log_level(), None);
     }
 }

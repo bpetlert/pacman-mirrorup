@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use log::{debug, error, LevelFilter};
+use log::{debug, error};
 use std::{env, process};
 
 mod args;
@@ -11,22 +11,15 @@ use mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMir
 
 fn run_app() -> Result<()> {
     let arguments = Arguments::parse();
-    let log_level = match arguments.verbose {
-        0 => LevelFilter::Error,
-        1 => LevelFilter::Warn,
-        2 => LevelFilter::Info,
-        3 => LevelFilter::Debug,
-        4 => LevelFilter::Trace,
-        _ => LevelFilter::Trace,
-    };
 
     let mut log_builder = pretty_env_logger::formatted_builder();
     if let Ok(value) = env::var("RUST_LOG") {
         log_builder.parse_filters(&value);
     } else {
-        log_builder.filter_level(log_level);
+        log_builder.filter_level(arguments.verbose.log_level().unwrap().to_level_filter());
     }
     log_builder.init();
+
     debug!("Run with {:?}", arguments);
 
     if let Some(output_file) = &arguments.output_file {
