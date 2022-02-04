@@ -1,6 +1,5 @@
 use crate::mirror::TargetDb;
 use clap::Parser;
-use clap_verbosity_flag::Verbosity;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -39,9 +38,6 @@ pub struct Arguments {
     /// Statistics output file
     #[clap(short = 's', long, parse(from_os_str))]
     pub stats_file: Option<PathBuf>,
-
-    #[clap(flatten)]
-    pub verbose: Verbosity,
 }
 
 #[cfg(test)]
@@ -54,7 +50,7 @@ mod tests {
         // Default arguments
         let args =
             Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec!["test"]))
-                .unwrap();
+                .expect("Paring argument");
         assert_eq!(
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
@@ -64,7 +60,6 @@ mod tests {
         assert_eq!(args.mirrors, 10);
         assert_eq!(args.threads, 5);
         assert_eq!(args.stats_file, None);
-        assert_eq!(args.verbose.log_level(), Some(log::Level::Error));
 
         // Full long arguments
         let args = Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
@@ -81,12 +76,8 @@ mod tests {
             "20",
             "--stats-file",
             "/tmp/stats",
-            "--verbose",
-            "--verbose",
-            "--verbose",
-            "--verbose",
         ]))
-        .unwrap();
+        .expect("Paring argument");
         assert_eq!(
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
@@ -96,7 +87,6 @@ mod tests {
         assert_eq!(args.mirrors, 20);
         assert_eq!(args.threads, 20);
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
-        assert_eq!(args.verbose.log_level(), Some(log::Level::Trace));
 
         // Full short arguments
         let args = Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
@@ -113,9 +103,8 @@ mod tests {
             "20",
             "-s",
             "/tmp/stats",
-            "-vvvv",
         ]))
-        .unwrap();
+        .expect("Paring argument");
         assert_eq!(
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
@@ -125,13 +114,5 @@ mod tests {
         assert_eq!(args.mirrors, 20);
         assert_eq!(args.threads, 20);
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
-        assert_eq!(args.verbose.log_level(), Some(log::Level::Trace));
-
-        // Quiet flag
-        let args = Arguments::from_arg_matches(
-            &Arguments::into_app().get_matches_from(vec!["test", "-qq"]),
-        )
-        .unwrap();
-        assert_eq!(args.verbose.log_level(), None);
     }
 }

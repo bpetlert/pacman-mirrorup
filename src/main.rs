@@ -1,7 +1,8 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use log::{debug, error};
-use std::{env, process};
+use std::process;
+use tracing::{debug, error};
+use tracing_subscriber::EnvFilter;
 
 mod args;
 mod mirror;
@@ -9,35 +10,45 @@ mod mirror;
 use args::Arguments;
 use mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMirrorList};
 
+fn init_log() -> Result<()> {
+    let filter = match EnvFilter::try_from_env("RUST_LOG") {
+        Ok(f) => f,
+        Err(_) => EnvFilter::try_new("pacman_mirrorup=warn")?,
+    };
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .try_init()
+        .expect("Initialize tracing-subscriber");
+    Ok(())
+}
+
 fn run_app() -> Result<()> {
     let arguments = Arguments::parse();
-
-    let mut log_builder = pretty_env_logger::formatted_builder();
-    if let Ok(value) = env::var("RUST_LOG") {
-        log_builder.parse_filters(&value);
-    } else {
-        log_builder.filter_level(arguments.verbose.log_level().unwrap().to_level_filter());
-    }
-    log_builder.init();
-
+    init_log().expect("Initialize logging");
     debug!("Run with {:?}", arguments);
 
     if let Some(output_file) = &arguments.output_file {
         if output_file.exists() {
-            return Err(anyhow!("`{}` is exist.", output_file.to_str().unwrap()));
+            return Err(anyhow!(
+                "`{}` is exist.",
+                output_file.to_str().expect("Convert path to string")
+            ));
         }
     }
 
     if let Some(stats_file) = &arguments.stats_file {
         if stats_file.exists() {
-            return Err(anyhow!("`{}` is exist.", stats_file.to_str().unwrap()));
+            return Err(anyhow!(
+                "`{}` is exist.",
+                stats_file.to_str().expect("Convert path to string")
+            ));
         }
     }
 
     rayon::ThreadPoolBuilder::new()
         .num_threads(arguments.threads)
         .build_global()
-        .unwrap();
+        .expect("Set number of rayon threads");
 
     let mirrors_status: MirrorsStatus = MirrorsStatus::from_online_json(&arguments.source_url)?;
     let best_synced_mirrors: Mirrors = mirrors_status.best_synced_mirrors()?;

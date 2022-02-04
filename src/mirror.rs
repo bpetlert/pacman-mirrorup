@@ -1,14 +1,15 @@
 use anyhow::{anyhow, Result};
-use log::{debug, info};
 use rayon::prelude::*;
-use reqwest::blocking::Client;
-use reqwest::{self};
+use reqwest::{self, blocking::Client};
 use serde::{Deserialize, Serialize};
-use std::convert::TryInto;
-use std::fs::OpenOptions;
-use std::io::{BufWriter, Write};
-use std::path::Path;
-use std::time::{Duration, Instant};
+use std::{
+    convert::TryInto,
+    fs::OpenOptions,
+    io::{BufWriter, Write},
+    path::Path,
+    time::{Duration, Instant},
+};
+use tracing::{debug, info};
 
 static APP_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -216,12 +217,12 @@ impl Statistics for Mirrors {
         self.sort_by(|a, b| {
             let aa: f64 = a.weighted_score.unwrap_or(0.0_f64);
             let bb: f64 = b.weighted_score.unwrap_or(0.0_f64);
-            aa.partial_cmp(&bb).unwrap().reverse()
+            aa.partial_cmp(&bb).expect("Compare version").reverse()
         });
     }
 
     fn select(&mut self, n: u32) {
-        self.truncate(n.try_into().unwrap());
+        self.truncate(n.try_into().expect("u32 to usize"));
     }
 
     fn to_csv(&self, path: &Path) -> Result<()> {
@@ -330,15 +331,18 @@ mod tests {
     #[test]
     fn test_deserialize_mirrors_status() {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
-        let _: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
+        let _: MirrorsStatus =
+            serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
     }
 
     #[test]
     fn test_best_synced_mirrors() {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
-        let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
-        let result = mirrors_status.best_synced_mirrors();
-        let mirrors: Mirrors = result.unwrap();
+        let mirrors_status: MirrorsStatus =
+            serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
+        let mirrors: Mirrors = mirrors_status
+            .best_synced_mirrors()
+            .expect("Get best synced mirrors");
 
         mirrors.iter().for_each(|m| {
             // Only active mirror
@@ -352,7 +356,7 @@ mod tests {
 
             // delay < 3600
             assert_ne!(m.delay, None);
-            assert!(m.delay.unwrap() < 3600);
+            assert!(m.delay.expect("delay value") < 3600);
         });
 
         // Sort by delay value ascending
@@ -372,9 +376,11 @@ mod tests {
     #[test]
     fn test_messure_duration() {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
-        let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
-        let result = mirrors_status.best_synced_mirrors();
-        let mut mirrors: Mirrors = result.unwrap();
+        let mirrors_status: MirrorsStatus =
+            serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
+        let mut mirrors: Mirrors = mirrors_status
+            .best_synced_mirrors()
+            .expect("Get best synced mirrors");
         mirrors.truncate(10);
         let _ = mirrors.measure_duration(TargetDb::Core);
         mirrors.iter().for_each(|m| {
@@ -385,14 +391,19 @@ mod tests {
     #[test]
     fn test_score() {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
-        let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
-        let result = mirrors_status.best_synced_mirrors();
-        let mut mirrors: Mirrors = result.unwrap();
+        let mirrors_status: MirrorsStatus =
+            serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
+        let mut mirrors: Mirrors = mirrors_status
+            .best_synced_mirrors()
+            .expect("Get best synced mirrors");
         mirrors.iter_mut().for_each(|m| {
             m.transfer_rate = m.duration_avg;
         });
         mirrors.score();
-        let sum: f64 = mirrors.iter().map(|m| m.weighted_score.unwrap()).sum();
+        let sum: f64 = mirrors
+            .iter()
+            .map(|m| m.weighted_score.expect("Weighted score value"))
+            .sum();
         assert!(
             (sum - 67.038_115_183_421_11).abs() < std::f64::EPSILON,
             "sum = {}",
@@ -403,9 +414,11 @@ mod tests {
     #[test]
     fn test_sort_by_weighted_score() {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
-        let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
-        let result = mirrors_status.best_synced_mirrors();
-        let mut mirrors: Mirrors = result.unwrap();
+        let mirrors_status: MirrorsStatus =
+            serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
+        let mut mirrors: Mirrors = mirrors_status
+            .best_synced_mirrors()
+            .expect("Get best synced mirrors");
         mirrors.iter_mut().for_each(|m| {
             m.transfer_rate = m.duration_avg;
         });
@@ -413,7 +426,11 @@ mod tests {
         mirrors.sort_by_weighted_score();
 
         // 1st mirror
-        let first: f64 = mirrors.first().unwrap().weighted_score.unwrap();
+        let first: f64 = mirrors
+            .first()
+            .expect("First mirror")
+            .weighted_score
+            .expect("Weighted score value");
         assert!(
             (first - 1.055_667_912_102_490_1).abs() < std::f64::EPSILON,
             "first weighted score = {}",
@@ -421,7 +438,11 @@ mod tests {
         );
 
         // latest mirror
-        let last: f64 = mirrors.last().unwrap().weighted_score.unwrap();
+        let last: f64 = mirrors
+            .last()
+            .expect("Last mirror")
+            .weighted_score
+            .expect("Weighted score value");
         assert!(
             (last - 0.0_f64).abs() < std::f64::EPSILON,
             "last weighted score = {}",
@@ -437,16 +458,19 @@ mod tests {
     #[test]
     fn test_select_n_mirrors() {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
-        let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
-        let result = mirrors_status.best_synced_mirrors();
-        let mut mirrors: Mirrors = result.unwrap();
+        let mirrors_status: MirrorsStatus =
+            serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
+        let mut mirrors: Mirrors = mirrors_status
+            .best_synced_mirrors()
+            .expect("Get best synced mirrors");
         mirrors.select(20);
         assert_eq!(mirrors.len(), 20);
     }
 
     #[test]
     fn test_mirrorlist_file_header() {
-        let header_format = Regex::new(include_str!("mirrorlist_header.regex")).unwrap();
+        let header_format =
+            Regex::new(include_str!("mirrorlist_header.regex")).expect("Creating regex");
         let mirror: Mirror = Default::default();
         let header = mirror.header("https://www.archlinux.org/mirrors/status/json/");
         assert!(
@@ -460,10 +484,12 @@ mod tests {
     #[test]
     fn test_to_pacman_mirror_list() {
         let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
-        let mirrors_status: MirrorsStatus = serde_json::from_str(mirrors_status_raw).unwrap();
+        let mirrors_status: MirrorsStatus =
+            serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mirrors: Mirrors = mirrors_status.urls;
         let mirror_format =
-            Regex::new(r"Server\x20=\x20(http(s?)|rsync)://(\S+\.\S+/)(\$repo/os/\$arch)").unwrap();
+            Regex::new(r"Server\x20=\x20(http(s?)|rsync)://(\S+\.\S+/)(\$repo/os/\$arch)")
+                .expect("Creating regex");
 
         // Check Mirror
         for mirror in mirrors.iter() {
