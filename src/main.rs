@@ -17,6 +17,7 @@ fn init_log() -> Result<()> {
     };
     tracing_subscriber::fmt()
         .with_env_filter(filter)
+        .without_time()
         .try_init()
         .expect("Initialize tracing-subscriber");
     Ok(())
