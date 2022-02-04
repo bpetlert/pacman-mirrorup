@@ -60,7 +60,7 @@ To show log message higher than waning try set https://docs.rs/env_logger/0.9.0/
 
 [source,shell]
 ----
-pacman_mirrorup=debug
+RUST_LOG=pacman_mirrorup=debug
 ----
 
 To change the options of pacman-mirrorup timer, run `systemctl edit pacman-mirrorup.timer`
