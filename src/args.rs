@@ -49,7 +49,7 @@ mod tests {
     fn test_args() {
         // Default arguments
         let args =
-            Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec!["test"]))
+            Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec!["test"]))
                 .expect("Paring argument");
         assert_eq!(
             args.source_url,
@@ -62,7 +62,7 @@ mod tests {
         assert_eq!(args.stats_file, None);
 
         // Full long arguments
-        let args = Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
+        let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
             "test",
             "--source-url",
             "https://www.archlinux.org/mirrors/status/json/",
@@ -89,7 +89,7 @@ mod tests {
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
 
         // Full short arguments
-        let args = Arguments::from_arg_matches(&Arguments::into_app().get_matches_from(vec![
+        let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
             "test",
             "-S",
             "https://www.archlinux.org/mirrors/status/json/",
