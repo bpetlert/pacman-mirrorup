@@ -217,7 +217,7 @@ impl Statistics for Mirrors {
         self.sort_by(|a, b| {
             let aa: f64 = a.weighted_score.unwrap_or(0.0_f64);
             let bb: f64 = b.weighted_score.unwrap_or(0.0_f64);
-            aa.partial_cmp(&bb).expect("Compare version").reverse()
+            aa.partial_cmp(&bb).unwrap().reverse()
         });
     }
 

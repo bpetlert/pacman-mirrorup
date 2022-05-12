@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
 use std::process;
 use tracing::{debug, error};
@@ -15,24 +15,30 @@ fn init_log() -> Result<()> {
         Ok(f) => f,
         Err(_) => EnvFilter::try_new("pacman_mirrorup=warn")?,
     };
-    tracing_subscriber::fmt()
+
+    if let Err(err) = tracing_subscriber::fmt()
         .with_env_filter(filter)
         .without_time()
         .try_init()
-        .expect("Initialize tracing-subscriber");
+    {
+        bail!("Failed to initialize tracing subscriber: {err}");
+    }
+
     Ok(())
 }
 
 fn run_app() -> Result<()> {
     let arguments = Arguments::parse();
-    init_log().expect("Initialize logging");
+    init_log().context("Failed to initialize logging")?;
     debug!("Run with {:?}", arguments);
 
     if let Some(output_file) = &arguments.output_file {
         if output_file.exists() {
             return Err(anyhow!(
                 "`{}` is exist.",
-                output_file.to_str().expect("Convert path to string")
+                output_file
+                    .to_str()
+                    .context("Failed to convert path to string")?
             ));
         }
     }
@@ -41,7 +47,9 @@ fn run_app() -> Result<()> {
         if stats_file.exists() {
             return Err(anyhow!(
                 "`{}` is exist.",
-                stats_file.to_str().expect("Convert path to string")
+                stats_file
+                    .to_str()
+                    .context("Failed to convert path to string")?
             ));
         }
     }
@@ -49,7 +57,10 @@ fn run_app() -> Result<()> {
     rayon::ThreadPoolBuilder::new()
         .num_threads(arguments.threads)
         .build_global()
-        .expect("Set number of rayon threads");
+        .context(format!(
+            "Failed to set number of rayon threads to {}",
+            arguments.threads
+        ))?;
 
     let mirrors_status: MirrorsStatus = MirrorsStatus::from_online_json(&arguments.source_url)?;
     let best_synced_mirrors: Mirrors = mirrors_status.best_synced_mirrors()?;
