@@ -9,6 +9,7 @@ use std::{
     path::Path,
     time::{Duration, Instant},
 };
+use time::{format_description::well_known::Rfc2822, OffsetDateTime};
 use tracing::{debug, info};
 
 static APP_USER_AGENT: &str = concat!(
@@ -268,9 +269,13 @@ pub trait ToPacmanMirrorList {
     /// Write to mirrorlist file
     fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()>;
 
-    fn header(&self, source_url: &str) -> String {
-        let now = chrono::Local::now();
-        format!(
+    fn header(&self, source_url: &str) -> Result<String> {
+        let now = if let Ok(t) = OffsetDateTime::now_local() {
+            t
+        } else {
+            OffsetDateTime::now_utc()
+        };
+        Ok(format!(
             "\
             #\n\
             # /etc/pacman.d/mirrorlist\n\
@@ -285,8 +290,8 @@ pub trait ToPacmanMirrorList {
             \n\
             ",
             source_url,
-            now.to_rfc2822()
-        )
+            now.format(&Rfc2822)?
+        ))
     }
 }
 
@@ -316,7 +321,7 @@ impl ToPacmanMirrorList for Mirrors {
             .append(false)
             .open(path)?;
         let mut file = BufWriter::new(file);
-        file.write_all(self.header(source_url).as_bytes())?;
+        file.write_all(self.header(source_url)?.as_bytes())?;
         file.write_all(self.to_pacman_mirror_list().as_bytes())?;
         file.flush()?;
         Ok(())
@@ -472,7 +477,9 @@ mod tests {
         let header_format =
             Regex::new(include_str!("mirrorlist_header.regex")).expect("Creating regex");
         let mirror: Mirror = Default::default();
-        let header = mirror.header("https://www.archlinux.org/mirrors/status/json/");
+        let header = mirror
+            .header("https://www.archlinux.org/mirrors/status/json/")
+            .unwrap();
         assert!(
             header_format.is_match(&header),
             "\nheader-format:\n{}\n\nheader:\n{}",

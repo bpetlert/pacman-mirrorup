@@ -18,7 +18,6 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.57"
-chrono = "0.4.19"
 clap = { version = "3.2.4", features = ["derive"] }
 csv = "1.1.6"
 rayon = "1.5.3"
@@ -30,6 +29,7 @@ reqwest = { version = "0.11.11", features = [
 ], default-features = false }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
+time = { version = "0.3.11", features = ["local-offset", "formatting"] }
 tracing = { version = "0.1.35", features = [
   "max_level_debug",
   "release_max_level_info",
