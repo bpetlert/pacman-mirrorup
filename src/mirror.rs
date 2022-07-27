@@ -4,8 +4,9 @@ use reqwest::{self, blocking::Client};
 use serde::{Deserialize, Serialize};
 use std::{
     convert::TryInto,
+    fmt::Write,
     fs::OpenOptions,
-    io::{BufWriter, Write},
+    io::BufWriter,
     path::Path,
     time::{Duration, Instant},
 };
@@ -264,7 +265,7 @@ impl Evaluation for Mirrors {
 
 pub trait ToPacmanMirrorList {
     /// Convert to pacman mirror list format
-    fn to_pacman_mirror_list(&self) -> String;
+    fn to_pacman_mirror_list(&self) -> Result<String>;
 
     /// Write to mirrorlist file
     fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()>;
@@ -296,8 +297,8 @@ pub trait ToPacmanMirrorList {
 }
 
 impl ToPacmanMirrorList for Mirror {
-    fn to_pacman_mirror_list(&self) -> String {
-        format!("Server = {url}$repo/os/$arch", url = self.url)
+    fn to_pacman_mirror_list(&self) -> Result<String> {
+        Ok(format!("Server = {url}$repo/os/$arch", url = self.url))
     }
 
     fn to_mirrorlist_file(&self, _path: &Path, _source_url: &str) -> Result<()> {
@@ -306,12 +307,12 @@ impl ToPacmanMirrorList for Mirror {
 }
 
 impl ToPacmanMirrorList for Mirrors {
-    fn to_pacman_mirror_list(&self) -> String {
+    fn to_pacman_mirror_list(&self) -> Result<String> {
         let mut list = String::new();
         for mirror in self.iter() {
-            list.push_str(&format!("{}\n", mirror.to_pacman_mirror_list()));
+            writeln!(&mut list, "{}", mirror.to_pacman_mirror_list()?)?;
         }
-        list
+        Ok(list)
     }
 
     fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()> {
@@ -321,9 +322,9 @@ impl ToPacmanMirrorList for Mirrors {
             .append(false)
             .open(path)?;
         let mut file = BufWriter::new(file);
-        file.write_all(self.header(source_url)?.as_bytes())?;
-        file.write_all(self.to_pacman_mirror_list().as_bytes())?;
-        file.flush()?;
+        std::io::Write::write_all(&mut file, self.header(source_url)?.as_bytes())?;
+        std::io::Write::write_all(&mut file, self.to_pacman_mirror_list()?.as_bytes())?;
+        std::io::Write::flush(&mut file)?;
         Ok(())
     }
 }
@@ -335,14 +336,20 @@ mod tests {
 
     #[test]
     fn test_deserialize_mirrors_status() {
-        let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
+        let mirrors_status_raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrors_status.json"
+        ));
         let _: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
     }
 
     #[test]
     fn test_best_synced_mirrors() {
-        let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
+        let mirrors_status_raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrors_status.json"
+        ));
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mirrors: Mirrors = mirrors_status
@@ -380,7 +387,10 @@ mod tests {
 
     #[test]
     fn test_messure_duration() {
-        let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
+        let mirrors_status_raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrors_status.json"
+        ));
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
@@ -395,7 +405,10 @@ mod tests {
 
     #[test]
     fn test_score() {
-        let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
+        let mirrors_status_raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrors_status.json"
+        ));
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
@@ -410,7 +423,7 @@ mod tests {
             .map(|m| m.weighted_score.expect("Weighted score value"))
             .sum();
         assert!(
-            (sum - 67.038_115_183_421_11).abs() < std::f64::EPSILON,
+            (sum - 45.90635811739935).abs() < std::f64::EPSILON,
             "sum = {}",
             sum
         );
@@ -418,7 +431,10 @@ mod tests {
 
     #[test]
     fn test_sort_by_weighted_score() {
-        let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
+        let mirrors_status_raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrors_status.json"
+        ));
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
@@ -437,12 +453,12 @@ mod tests {
             .weighted_score
             .expect("Weighted score value");
         assert!(
-            (first - 1.055_667_912_102_490_1).abs() < std::f64::EPSILON,
+            (first - 1.1922723128592017).abs() < std::f64::EPSILON,
             "first weighted score = {}",
             first
         );
 
-        // latest mirror
+        // Last mirror
         let last: f64 = mirrors
             .last()
             .expect("Last mirror")
@@ -462,7 +478,10 @@ mod tests {
 
     #[test]
     fn test_select_n_mirrors() {
-        let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
+        let mirrors_status_raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrors_status.json"
+        ));
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
@@ -474,8 +493,11 @@ mod tests {
 
     #[test]
     fn test_mirrorlist_file_header() {
-        let header_format =
-            Regex::new(include_str!("mirrorlist_header.regex")).expect("Creating regex");
+        let header_format = Regex::new(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrorlist_header.regex"
+        )))
+        .expect("Creating regex");
         let mirror: Mirror = Default::default();
         let header = mirror
             .header("https://www.archlinux.org/mirrors/status/json/")
@@ -490,7 +512,10 @@ mod tests {
 
     #[test]
     fn test_to_pacman_mirror_list() {
-        let mirrors_status_raw = include_str!("mirrors_status_json_test.raw");
+        let mirrors_status_raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrors_status.json"
+        ));
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mirrors: Mirrors = mirrors_status.urls;
@@ -500,11 +525,11 @@ mod tests {
 
         // Check Mirror
         for mirror in mirrors.iter() {
-            assert!(mirror_format.is_match(&mirror.to_pacman_mirror_list()));
+            assert!(mirror_format.is_match(&mirror.to_pacman_mirror_list().unwrap()));
         }
 
         // Check Mirrors
-        for line in mirrors.to_pacman_mirror_list().lines() {
+        for line in mirrors.to_pacman_mirror_list().unwrap().lines() {
             assert!(mirror_format.is_match(line));
         }
     }

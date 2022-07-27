@@ -1,0 +1,32 @@
+MIRRORS_FILE := "mirrors_status.json"
+
+@_default:
+  just --list
+
+# Get mirrors status for testing
+get_mirrors_status:
+   wget -qO - https://archlinux.org/mirrors/status/json/ | jq > {{MIRRORS_FILE}}
+
+# Successfully syncing mirrors
+extract_syncing_mirrors:
+  #!/usr/bin/bash
+
+  jq \
+    --raw-output \
+    --compact-output \
+    '
+    .urls
+    | sort_by(.score)[]
+    | select(.protocol | contains("http"))
+    | select(.completion_pct != null and .delay != null and .score != null)
+    | {
+        completion_pct: .completion_pct|tonumber,
+        delay: .delay|tonumber,
+        score: .score|tonumber,
+        url: .url,
+      }
+    | select((.completion_pct == 1.0) and (.delay < 3600))
+    | [.url,.score]
+    | @csv
+    ' \
+    {{MIRRORS_FILE}}

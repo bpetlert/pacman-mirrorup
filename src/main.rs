@@ -72,7 +72,7 @@ fn run_app() -> Result<()> {
         best_mirrors.to_mirrorlist_file(output_file, &arguments.source_url)?;
     } else {
         // Write to stdout
-        print!("{}", &best_mirrors.to_pacman_mirror_list());
+        print!("{}", &best_mirrors.to_pacman_mirror_list()?);
     }
 
     if let Some(stats_file) = &arguments.stats_file {
