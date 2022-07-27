@@ -271,10 +271,12 @@ pub trait ToPacmanMirrorList {
     fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()>;
 
     fn header(&self, source_url: &str) -> Result<String> {
-        let now = if let Ok(t) = OffsetDateTime::now_local() {
-            t
-        } else {
-            OffsetDateTime::now_utc()
+        let now = match OffsetDateTime::now_local() {
+            Ok(t) => t,
+            Err(e) => {
+                debug!("Cannot get local datetime: {e}. Use UTC time instead");
+                OffsetDateTime::now_utc()
+            }
         };
         Ok(format!(
             "\
