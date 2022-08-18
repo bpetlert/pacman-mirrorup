@@ -22,7 +22,7 @@ static APP_USER_AGENT: &str = concat!(
     ")"
 );
 
-#[derive(clap::ArgEnum, PartialEq, Debug, Clone, Copy)]
+#[derive(clap::ArgEnum, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum TargetDb {
     Core,
     Community,
