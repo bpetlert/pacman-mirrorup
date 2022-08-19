@@ -21,6 +21,10 @@ It applies filters as the following to original data:
 To take user's geography into consideration.
 All filtered mirrors are tested data transfer rate.
 The mirror's score from original data is weighted using transfer rate and then select the best N mirrors.
+The best N mirrors can be changed by `--mirror` flag, default is 10.
+The total number of synced mirrors to be tested is 100.
+This number can be changed by `--max-check` flag.
+Set it to zero to test all synced mirrors.
 
 == Installation
 
