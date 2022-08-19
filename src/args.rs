@@ -27,6 +27,11 @@ pub struct Arguments {
     #[clap(short = 'o', long, parse(from_os_str))]
     pub output_file: Option<PathBuf>,
 
+    /// Maximum number of synced mirrors to check,
+    /// 0 = check all synced mirrors
+    #[clap(short = 'c', long, default_value = "100")]
+    pub max_check: u32,
+
     /// Limit the list to the n mirrors with the highest score.
     #[clap(short = 'm', long, default_value = "10")]
     pub mirrors: u32,
@@ -57,6 +62,7 @@ mod tests {
         );
         assert_eq!(args.target_db, TargetDb::Community);
         assert_eq!(args.output_file, None);
+        assert_eq!(args.max_check, 100);
         assert_eq!(args.mirrors, 10);
         assert_eq!(args.threads, 5);
         assert_eq!(args.stats_file, None);
@@ -70,6 +76,8 @@ mod tests {
             "community",
             "--output-file",
             "/tmp/mirrorlist",
+            "--max-check",
+            "200",
             "--mirrors",
             "20",
             "--threads",
@@ -84,6 +92,7 @@ mod tests {
         );
         assert_eq!(args.target_db, TargetDb::Community);
         assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
+        assert_eq!(args.max_check, 200);
         assert_eq!(args.mirrors, 20);
         assert_eq!(args.threads, 20);
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
@@ -97,6 +106,8 @@ mod tests {
             "community",
             "-o",
             "/tmp/mirrorlist",
+            "-c",
+            "200",
             "-m",
             "20",
             "-T",
@@ -111,6 +122,7 @@ mod tests {
         );
         assert_eq!(args.target_db, TargetDb::Community);
         assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
+        assert_eq!(args.max_check, 200);
         assert_eq!(args.mirrors, 20);
         assert_eq!(args.threads, 20);
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));

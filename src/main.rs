@@ -63,7 +63,7 @@ fn run_app() -> Result<()> {
         ))?;
 
     let mirrors_status: MirrorsStatus = MirrorsStatus::from_online_json(&arguments.source_url)?;
-    let best_synced_mirrors: Mirrors = mirrors_status.best_synced_mirrors()?;
+    let best_synced_mirrors: Mirrors = mirrors_status.best_synced_mirrors(arguments.max_check)?;
     let best_mirrors: Mirrors =
         best_synced_mirrors.evaluate(arguments.mirrors, arguments.target_db)?;
 
