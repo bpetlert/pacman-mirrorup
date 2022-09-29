@@ -3,10 +3,10 @@ use clap::Parser;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[clap(about, version, author)]
+#[command(author, version, about, long_about = None)]
 pub struct Arguments {
     /// Arch Linux mirrors status's data source
-    #[clap(
+    #[arg(
         short = 'S',
         long,
         default_value = "https://www.archlinux.org/mirrors/status/json/"
@@ -14,48 +14,49 @@ pub struct Arguments {
     pub source_url: String,
 
     /// Choose speed test target database file (Core, Community, or Extra)
-    #[clap(
+    #[arg(
         short = 't',
         long,
         ignore_case = true,
         default_value = "Community",
-        arg_enum
+        value_enum
     )]
     pub target_db: TargetDb,
 
     /// Mirror list output file
-    #[clap(short = 'o', long, parse(from_os_str))]
+    #[arg(short = 'o', long)]
     pub output_file: Option<PathBuf>,
 
     /// Maximum number of synced mirrors to check,
     /// 0 = check all synced mirrors
-    #[clap(short = 'c', long, default_value = "100")]
+    #[arg(short = 'c', long, default_value = "100")]
     pub max_check: u32,
 
     /// Limit the list to the n mirrors with the highest score.
-    #[clap(short = 'm', long, default_value = "10")]
+    #[arg(short = 'm', long, default_value = "10")]
     pub mirrors: u32,
 
     /// The maximum number of threads to use when measure transfer rate
-    #[clap(short = 'T', long, default_value = "5")]
+    #[arg(short = 'T', long, default_value = "5")]
     pub threads: usize,
 
     /// Statistics output file
-    #[clap(short = 's', long, parse(from_os_str))]
+    #[arg(short = 's', long)]
     pub stats_file: Option<PathBuf>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use clap::{FromArgMatches, IntoApp};
+    use clap::{CommandFactory, FromArgMatches};
 
     #[test]
     fn test_args() {
         // Default arguments
-        let args =
-            Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec!["test"]))
-                .expect("Paring argument");
+        let args = Arguments::from_arg_matches(
+            &Arguments::command().get_matches_from(vec![env!("CARGO_CRATE_NAME")]),
+        )
+        .expect("Paring argument");
         assert_eq!(
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
@@ -69,7 +70,7 @@ mod tests {
 
         // Full long arguments
         let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
-            "test",
+            env!("CARGO_CRATE_NAME"),
             "--source-url",
             "https://www.archlinux.org/mirrors/status/json/",
             "--target-db",
@@ -99,7 +100,7 @@ mod tests {
 
         // Full short arguments
         let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
-            "test",
+            env!("CARGO_CRATE_NAME"),
             "-S",
             "https://www.archlinux.org/mirrors/status/json/",
             "-t",
