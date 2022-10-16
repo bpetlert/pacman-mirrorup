@@ -10,7 +10,6 @@ use std::{
     path::Path,
     time::{Duration, Instant},
 };
-use time::{format_description::well_known::Rfc2822, OffsetDateTime};
 use tracing::{debug, info};
 
 static APP_USER_AGENT: &str = concat!(
@@ -273,13 +272,7 @@ pub trait ToPacmanMirrorList {
     fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()>;
 
     fn header(&self, source_url: &str) -> Result<String> {
-        let now = match OffsetDateTime::now_local() {
-            Ok(t) => t,
-            Err(e) => {
-                debug!("Cannot get local datetime: {e}. Use UTC time instead");
-                OffsetDateTime::now_utc()
-            }
-        };
+        let now = chrono::Local::now();
         Ok(format!(
             "\
             #\n\
@@ -295,7 +288,7 @@ pub trait ToPacmanMirrorList {
             \n\
             ",
             source_url,
-            now.format(&Rfc2822)?
+            now.to_rfc2822()
         ))
     }
 }
