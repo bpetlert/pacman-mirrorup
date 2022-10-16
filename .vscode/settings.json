@@ -4,6 +4,7 @@
     "clippy",
     "Deserializing",
     "isos",
+    "mimalloc",
     "mirrorup",
     "pkgver",
     "powf",

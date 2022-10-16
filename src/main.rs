@@ -1,8 +1,12 @@
 use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
+use mimalloc::MiMalloc;
 use std::process;
 use tracing::{debug, error};
 use tracing_subscriber::EnvFilter;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 mod args;
 mod mirror;

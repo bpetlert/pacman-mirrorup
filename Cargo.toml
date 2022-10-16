@@ -21,6 +21,7 @@ anyhow = "1.0.65"
 chrono = { version = "0.4.22", default-features = false, features = ["clock"] }
 clap = { version = "4.0.15", features = ["derive"] }
 csv = "1.1.6"
+mimalloc = "0.1.30"
 rayon = "1.5.3"
 reqwest = { version = "0.11.12", features = [
   "blocking",
