@@ -1,8 +1,7 @@
 use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
 use mimalloc::MiMalloc;
-use std::process;
-use tracing::{debug, error};
+use tracing::debug;
 use tracing_subscriber::EnvFilter;
 
 #[global_allocator]
@@ -31,7 +30,7 @@ fn init_log() -> Result<()> {
     Ok(())
 }
 
-fn run_app() -> Result<()> {
+fn main() -> Result<()> {
     let arguments = Arguments::parse();
     init_log().context("Failed to initialize logging")?;
     debug!("Run with {:?}", arguments);
@@ -84,14 +83,4 @@ fn run_app() -> Result<()> {
     }
 
     Ok(())
-}
-
-fn main() {
-    process::exit(match run_app() {
-        Ok(_) => 0,
-        Err(err) => {
-            error!("{}", err);
-            1
-        }
-    });
 }
