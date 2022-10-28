@@ -33,21 +33,17 @@ Set it to zero to test all synced mirrors.
 It is available on AUR as https://aur.archlinux.org/packages/pacman-mirrorup/[pacman-mirrorup].
 To build and install arch package from GIT source:
 
-[source,shell]
-----
+[source,console]
 $ git clone https://github.com/bpetlert/pacman-mirrorup.git
 $ cd pacman-mirrorup
 $ makepkg -p PKGBUILD.local
 $ pacman -U pacman-mirrorup-xxxx-1-x86_64.pkg.tar
-----
 
 Then enable/start pacman-mirrorup.timer
 
-[source,shell]
-----
+[source,console]
 $ systemctl enable pacman-mirrorup.timer
 $ systemctl start pacman-mirrorup.timer
-----
 
 == Configuration
 
@@ -62,9 +58,12 @@ Environment='MIRRORUP_ARGS=--output-file /etc/pacman.d/mirrorlist --threads 10'
 
 To show log message higher than waning try set https://docs.rs/env_logger/0.9.0/env_logger/#enabling-logging[RUST_LOG] environment variable. For example:
 
-[source,shell]
+./etc/systemd/system/pacman-mirrorup.service.d/override.conf
+[source,ini]
 ----
-RUST_LOG=pacman_mirrorup=debug
+[Service]
+Environment='RUST_LOG=pacman_mirrorup=debug'
+Environment='MIRRORUP_ARGS=--output-file /etc/pacman.d/mirrorlist --threads 10'
 ----
 
 To change the options of pacman-mirrorup timer, run `systemctl edit pacman-mirrorup.timer`
