@@ -16,7 +16,7 @@ use mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMir
 fn init_log() -> Result<()> {
     let filter = match EnvFilter::try_from_env("RUST_LOG") {
         Ok(f) => f,
-        Err(_) => EnvFilter::try_new("pacman_mirrorup=warn")?,
+        Err(_) => EnvFilter::try_new("pacman_mirrorup=info")?,
     };
 
     if let Err(err) = tracing_subscriber::fmt()
