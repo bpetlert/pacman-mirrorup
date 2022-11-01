@@ -13,12 +13,9 @@ mod mirror;
 use args::Arguments;
 use mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMirrorList};
 
-fn init_log() -> Result<()> {
-    let filter = match EnvFilter::try_from_env("RUST_LOG") {
-        Ok(f) => f,
-        Err(_) => EnvFilter::try_new("pacman_mirrorup=info")?,
-    };
-
+fn main() -> Result<()> {
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or(EnvFilter::try_new("pacman_mirrorup=info")?);
     if let Err(err) = tracing_subscriber::fmt()
         .with_env_filter(filter)
         .without_time()
@@ -27,12 +24,7 @@ fn init_log() -> Result<()> {
         bail!("Failed to initialize tracing subscriber: {err}");
     }
 
-    Ok(())
-}
-
-fn main() -> Result<()> {
     let arguments = Arguments::parse();
-    init_log().context("Failed to initialize logging")?;
     debug!("Run with {:?}", arguments);
 
     if let Some(output_file) = &arguments.output_file {
