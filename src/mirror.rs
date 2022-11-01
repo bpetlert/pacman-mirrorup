@@ -10,7 +10,7 @@ use std::{
     path::Path,
     time::{Duration, Instant},
 };
-use tracing::{debug, info};
+use tracing::{debug, warn};
 
 static APP_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -176,7 +176,7 @@ impl Benchmark for Mirrors {
     fn measure_duration(&mut self, target_db: TargetDb) -> Result<()> {
         self.par_iter_mut().for_each(|mirror| {
             if let Err(err) = mirror.measure_duration(target_db) {
-                info!("{}", err);
+                warn!("{}", err);
             }
         });
 
