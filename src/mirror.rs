@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{bail, Result};
 use rayon::prelude::*;
 use reqwest::{self, blocking::Client};
 use serde::{Deserialize, Serialize};
@@ -115,7 +115,7 @@ impl Filter for MirrorsStatus {
         }
 
         if mirrors.is_empty() {
-            return Err(anyhow!("No best synced mirrors"));
+            bail!("No best synced mirrors");
         }
 
         Ok(mirrors)
@@ -257,7 +257,7 @@ impl Evaluation for Mirrors {
         mirrors.select(n);
 
         if mirrors.is_empty() {
-            return Err(anyhow!("No best mirrors"));
+            bail!("No best mirrors");
         }
 
         Ok(mirrors)

@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{bail, Context, Result};
 use clap::Parser;
 use mimalloc::MiMalloc;
 use tracing::debug;
@@ -37,23 +37,23 @@ fn main() -> Result<()> {
 
     if let Some(output_file) = &arguments.output_file {
         if output_file.exists() {
-            return Err(anyhow!(
+            bail!(
                 "`{}` is exist.",
                 output_file
                     .to_str()
                     .context("Failed to convert path to string")?
-            ));
+            );
         }
     }
 
     if let Some(stats_file) = &arguments.stats_file {
         if stats_file.exists() {
-            return Err(anyhow!(
+            bail!(
                 "`{}` is exist.",
                 stats_file
                     .to_str()
                     .context("Failed to convert path to string")?
-            ));
+            );
         }
     }
 
