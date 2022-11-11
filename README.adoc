@@ -4,7 +4,7 @@
 
 image:https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prereleases&label=release&style=flat-square[Release,link=https://github.com/bpetlert/pacman-mirrorup/releases/latest]
 image:https://img.shields.io/aur/version/pacman-mirrorup?style=flat-square["AUR: pacman-mirrorup",link=https://aur.archlinux.org/packages/pacman-mirrorup/]
-image:https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-square["License: MIT",link=./LICENSE]
+image:https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-square["License: GPL-3.0-or-later",link=./COPYING]
 
 A service to retrieve the best and latest Pacman mirror list based on user's geography
 
@@ -78,4 +78,4 @@ OnCalendar=daily
 
 == License
 
-*link:./LICENSE[MIT license]*
+*link:./COPYING[GNU General Public License v3.0 or later]*
