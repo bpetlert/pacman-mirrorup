@@ -9,14 +9,16 @@ pub struct Arguments {
     #[arg(
         short = 'S',
         long,
+        value_name = "URL",
         default_value = "https://www.archlinux.org/mirrors/status/json/"
     )]
     pub source_url: String,
 
-    /// Choose speed test target database file (Core, Community, or Extra)
+    /// Choose speed test target database file
     #[arg(
         short = 't',
         long,
+        value_name = "REPO-NAME",
         ignore_case = true,
         default_value = "Community",
         value_enum
@@ -24,25 +26,26 @@ pub struct Arguments {
     pub target_db: TargetDb,
 
     /// Mirror list output file
-    #[arg(short = 'o', long)]
+    #[arg(short = 'o', long, value_name = "OUTPUT-FILE")]
     pub output_file: Option<PathBuf>,
+
+    /// Statistics output file
+    #[arg(short = 's', long, value_name = "STATS-FILE")]
+    pub stats_file: Option<PathBuf>,
 
     /// Maximum number of synced mirrors to check,
     /// 0 = check all synced mirrors
-    #[arg(short = 'c', long, default_value = "100")]
+    #[arg(short = 'c', long, value_name = "NUMBER", default_value = "100")]
     pub max_check: u32,
 
     /// Limit the list to the n mirrors with the highest score.
-    #[arg(short = 'm', long, default_value = "10")]
+    #[arg(short = 'm', long, value_name = "NUMBER", default_value = "10")]
     pub mirrors: u32,
 
     /// The maximum number of threads to use when measure transfer rate
-    #[arg(short = 'T', long, default_value = "5")]
+    #[arg(short = 'T', long, value_name = "NUMBER", default_value = "5")]
     pub threads: usize,
 
-    /// Statistics output file
-    #[arg(short = 's', long)]
-    pub stats_file: Option<PathBuf>,
 }
 
 #[cfg(test)]
