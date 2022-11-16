@@ -49,6 +49,10 @@ pub struct Arguments {
     /// Exclude a mirror
     #[arg(long, value_name = "DOMAIN-NAME")]
     pub exclude: Option<Vec<String>>,
+
+    /// Read exclude mirrors from FILE
+    #[arg(long, value_name = "FILE")]
+    pub exclude_from: Option<PathBuf>,
 }
 
 #[cfg(test)]
@@ -74,6 +78,7 @@ mod tests {
         assert_eq!(args.mirrors, 10);
         assert_eq!(args.threads, 5);
         assert_eq!(args.exclude, None);
+        assert_eq!(args.exclude_from, None);
     }
 
     #[test]
@@ -168,6 +173,21 @@ mod tests {
         assert_eq!(
             args.exclude.unwrap(),
             vec!["ban.this.mirror", "ban.this-mirror.also"]
+        );
+    }
+
+    #[test]
+    fn exclude_from() {
+        let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
+            env!("CARGO_CRATE_NAME"),
+            "--exclude-from",
+            "/path/to/excluded-mirror.conf",
+        ]))
+        .unwrap();
+
+        assert_eq!(
+            args.exclude_from.unwrap(),
+            PathBuf::from("/path/to/excluded-mirror.conf")
         );
     }
 }
