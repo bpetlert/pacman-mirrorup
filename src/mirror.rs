@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use rayon::prelude::*;
-use reqwest::{self, blocking::Client};
+use reqwest::{self, blocking::Client, Url};
 use serde::{Deserialize, Serialize};
 use std::{
     convert::TryInto,
@@ -28,8 +28,8 @@ pub enum TargetDb {
     Extra,
 }
 
-#[derive(Deserialize, Debug)]
 #[allow(dead_code)]
+#[derive(Deserialize, Debug)]
 pub struct MirrorsStatus {
     cutoff: usize,
     last_check: String,
@@ -88,11 +88,19 @@ pub trait Filter {
     ///     ==> protocol(http/https)
     ///     ==> completion_pct(==1.0)
     ///     ==> delay(< 3600)
-    fn best_synced_mirrors(&self, max_check: u32) -> Result<Mirrors>;
+    fn best_synced_mirrors(
+        &self,
+        max_check: u32,
+        excluded_mirrors: Option<Vec<String>>,
+    ) -> Result<Mirrors>;
 }
 
 impl Filter for MirrorsStatus {
-    fn best_synced_mirrors(&self, max_check: u32) -> Result<Mirrors> {
+    fn best_synced_mirrors(
+        &self,
+        max_check: u32,
+        excluded_mirrors: Option<Vec<String>>,
+    ) -> Result<Mirrors> {
         let mut mirrors: Mirrors = self
             .urls
             .iter()
@@ -102,6 +110,16 @@ impl Filter for MirrorsStatus {
             .filter(|m| match m.delay {
                 Some(d) => d < 3600,
                 None => false,
+            })
+            .filter(|m| {
+                if let Some(exclude) = &excluded_mirrors {
+                    let domain_name = Url::parse(&m.url).unwrap();
+                    !exclude
+                        .iter()
+                        .any(|url| url == domain_name.domain().unwrap())
+                } else {
+                    true
+                }
             })
             .cloned()
             .collect();
@@ -130,10 +148,11 @@ trait Benchmark {
 
 impl Benchmark for Mirror {
     fn measure_duration(&mut self, target_db: TargetDb) -> Result<()> {
-        let url: String = match target_db {
-            TargetDb::Core => [&self.url, "core/os/x86_64/core.db"].join(""),
-            TargetDb::Community => [&self.url, "community/os/x86_64/community.db"].join(""),
-            TargetDb::Extra => [&self.url, "extra/os/x86_64/extra.db"].join(""),
+        let url = Url::parse(&self.url)?;
+        let url = match target_db {
+            TargetDb::Core => url.join("core/os/x86_64/core.db")?,
+            TargetDb::Community => url.join("community/os/x86_64/community.db")?,
+            TargetDb::Extra => url.join("extra/os/x86_64/extra.db")?,
         };
 
         self.transfer_rate = None;
@@ -148,7 +167,7 @@ impl Benchmark for Mirror {
             .build()?;
 
         let start = Instant::now();
-        let response = client.get(&url).send()?;
+        let response = client.get(url.clone()).send()?;
         if response.status().is_success() {
             let duration: f64 = start.elapsed().as_millis() as f64;
             let transfer_time: f64 = duration / 1000.0_f64;
@@ -350,7 +369,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100)
+            .best_synced_mirrors(100, None)
             .expect("Get best synced mirrors");
 
         mirrors.iter().for_each(|m| {
@@ -383,6 +402,34 @@ mod tests {
     }
 
     #[test]
+    fn exclude_mirrors() {
+        let mirrors_status_raw = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/mirrors_status.json"
+        ));
+        let mirrors_status: MirrorsStatus =
+            serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
+        let excluded_mirrors = Some(vec![
+            "mirrors.kernel.org".to_string(),
+            "mirror.xtom.com.hk".to_string(),
+        ]);
+        let mirrors: Mirrors = mirrors_status
+            .best_synced_mirrors(0, excluded_mirrors)
+            .expect("Get best synced mirrors");
+
+        assert_eq!(
+            mirrors.len(),
+            234,
+            "Number of mirrors returned = {}",
+            mirrors.len()
+        );
+
+        mirrors.iter().for_each(|m| {
+            assert!(!m.url.contains("mirrors.kernel.org") && !m.url.contains("mirror.xtom.com.hk"));
+        });
+    }
+
+    #[test]
     fn test_messure_duration() {
         let mirrors_status_raw = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -391,7 +438,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100)
+            .best_synced_mirrors(100, None)
             .expect("Get best synced mirrors");
         mirrors.truncate(10);
         let _ = mirrors.measure_duration(TargetDb::Core);
@@ -409,7 +456,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100)
+            .best_synced_mirrors(100, None)
             .expect("Get best synced mirrors");
         mirrors.iter_mut().for_each(|m| {
             m.transfer_rate = m.duration_avg;
@@ -435,7 +482,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100)
+            .best_synced_mirrors(100, None)
             .expect("Get best synced mirrors");
         mirrors.iter_mut().for_each(|m| {
             m.transfer_rate = m.duration_avg;
@@ -482,7 +529,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100)
+            .best_synced_mirrors(100, None)
             .expect("Get best synced mirrors");
         mirrors.select(20);
         assert_eq!(mirrors.len(), 20);

@@ -46,6 +46,9 @@ pub struct Arguments {
     #[arg(short = 'T', long, value_name = "NUMBER", default_value = "5")]
     pub threads: usize,
 
+    /// Exclude a mirror
+    #[arg(long, value_name = "DOMAIN-NAME")]
+    pub exclude: Option<Vec<String>>,
 }
 
 #[cfg(test)]
@@ -54,24 +57,27 @@ mod tests {
     use clap::{CommandFactory, FromArgMatches};
 
     #[test]
-    fn test_args() {
-        // Default arguments
+    fn default_args() {
         let args = Arguments::from_arg_matches(
             &Arguments::command().get_matches_from(vec![env!("CARGO_CRATE_NAME")]),
         )
-        .expect("Paring argument");
+        .unwrap();
+
         assert_eq!(
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
         assert_eq!(args.target_db, TargetDb::Community);
         assert_eq!(args.output_file, None);
+        assert_eq!(args.stats_file, None);
         assert_eq!(args.max_check, 100);
         assert_eq!(args.mirrors, 10);
         assert_eq!(args.threads, 5);
-        assert_eq!(args.stats_file, None);
+        assert_eq!(args.exclude, None);
+    }
 
-        // Full long arguments
+    #[test]
+    fn long_args() {
         let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
             env!("CARGO_CRATE_NAME"),
             "--source-url",
@@ -80,28 +86,31 @@ mod tests {
             "community",
             "--output-file",
             "/tmp/mirrorlist",
+            "--stats-file",
+            "/tmp/stats",
             "--max-check",
             "200",
             "--mirrors",
             "20",
             "--threads",
             "20",
-            "--stats-file",
-            "/tmp/stats",
         ]))
-        .expect("Paring argument");
+        .unwrap();
+
         assert_eq!(
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
         assert_eq!(args.target_db, TargetDb::Community);
         assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
+        assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
         assert_eq!(args.max_check, 200);
         assert_eq!(args.mirrors, 20);
         assert_eq!(args.threads, 20);
-        assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
+    }
 
-        // Full short arguments
+    #[test]
+    fn short_args() {
         let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
             env!("CARGO_CRATE_NAME"),
             "-S",
@@ -110,25 +119,55 @@ mod tests {
             "community",
             "-o",
             "/tmp/mirrorlist",
+            "-s",
+            "/tmp/stats",
             "-c",
             "200",
             "-m",
             "20",
             "-T",
             "20",
-            "-s",
-            "/tmp/stats",
         ]))
-        .expect("Paring argument");
+        .unwrap();
+
         assert_eq!(
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
         assert_eq!(args.target_db, TargetDb::Community);
         assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
+        assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
         assert_eq!(args.max_check, 200);
         assert_eq!(args.mirrors, 20);
         assert_eq!(args.threads, 20);
-        assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
+    }
+
+    #[test]
+    fn exclude_mirror() {
+        let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
+            env!("CARGO_CRATE_NAME"),
+            "--exclude",
+            "ban.this.mirror",
+        ]))
+        .unwrap();
+
+        assert_eq!(args.exclude.unwrap(), vec!["ban.this.mirror"]);
+    }
+
+    #[test]
+    fn exclude_mirrors() {
+        let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
+            env!("CARGO_CRATE_NAME"),
+            "--exclude",
+            "ban.this.mirror",
+            "--exclude",
+            "ban.this-mirror.also",
+        ]))
+        .unwrap();
+
+        assert_eq!(
+            args.exclude.unwrap(),
+            vec!["ban.this.mirror", "ban.this-mirror.also"]
+        );
     }
 }

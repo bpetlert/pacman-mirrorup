@@ -13,6 +13,7 @@
     "serde",
     "SIGABRT",
     "stddev",
-    "structopt"
+    "structopt",
+    "xtom"
   ]
 }
