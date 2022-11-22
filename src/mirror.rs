@@ -1,7 +1,3 @@
-use anyhow::{bail, Result};
-use rayon::prelude::*;
-use reqwest::{self, blocking::Client, Url};
-use serde::{Deserialize, Serialize};
 use std::{
     convert::TryInto,
     fmt::Write,
@@ -10,6 +6,11 @@ use std::{
     path::Path,
     time::{Duration, Instant},
 };
+
+use anyhow::{bail, Context, Result};
+use rayon::prelude::*;
+use reqwest::{self, blocking::Client, Url};
+use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 
 static APP_USER_AGENT: &str = concat!(
@@ -75,9 +76,19 @@ impl MirrorsStatus {
             .gzip(true)
             .http2_prior_knowledge()
             .use_rustls_tls()
-            .build()?;
-        let response = client.get(url).send()?;
-        let mirrors_status: MirrorsStatus = response.json()?;
+            .build()
+            .context("Failed to create downloader")?;
+
+        let url: Url = url.into_url()?;
+        let response = client
+            .get(url.clone())
+            .send()
+            .context(format!("Failed to fetch `{url}`"))?;
+
+        let mirrors_status: MirrorsStatus = response
+            .json()
+            .context("Failed to deserialize the response body as MirrorsStatus")?;
+
         Ok(mirrors_status)
     }
 }
@@ -148,8 +159,8 @@ trait Benchmark {
 
 impl Benchmark for Mirror {
     fn measure_duration(&mut self, target_db: TargetDb) -> Result<()> {
-        let url = Url::parse(&self.url)?;
-        let url = match target_db {
+        let url: Url = Url::parse(&self.url)?;
+        let url: Url = match target_db {
             TargetDb::Core => url.join("core/os/x86_64/core.db")?,
             TargetDb::Community => url.join("community/os/x86_64/community.db")?,
             TargetDb::Extra => url.join("extra/os/x86_64/extra.db")?,
@@ -164,10 +175,16 @@ impl Benchmark for Mirror {
             .timeout(Duration::from_secs(10))
             .danger_accept_invalid_certs(true)
             .use_rustls_tls()
-            .build()?;
+            .build()
+            .context("Failed to create downloader")?;
 
         let start = Instant::now();
-        let response = client.get(url.clone()).send()?;
+
+        let response = client
+            .get(url.clone())
+            .send()
+            .context(format!("Failed to fetch `{url}`"))?;
+
         if response.status().is_success() {
             let duration: f64 = start.elapsed().as_millis() as f64;
             let transfer_time: f64 = duration / 1000.0_f64;
@@ -175,16 +192,16 @@ impl Benchmark for Mirror {
             let file_size: f64 = match response.content_length() {
                 Some(fs) => fs as f64,
                 None => {
-                    debug!("Transfer Rate: {} => None", url);
+                    debug!("Transfer Rate: {url} => None");
                     return Ok(());
                 }
             };
 
             let transfer_rate = file_size / transfer_time;
             self.transfer_rate = Some(transfer_rate);
-            debug!("Transfer Rate: {} => {}", url, transfer_rate);
+            debug!("Transfer Rate: {url} => {transfer_rate}");
         } else {
-            debug!("Transfer Rate: {} => None", url);
+            debug!("Transfer Rate: {url} => None");
         }
 
         Ok(())
@@ -194,8 +211,11 @@ impl Benchmark for Mirror {
 impl Benchmark for Mirrors {
     fn measure_duration(&mut self, target_db: TargetDb) -> Result<()> {
         self.par_iter_mut().for_each(|mirror| {
-            if let Err(err) = mirror.measure_duration(target_db) {
-                warn!("{}", err);
+            if let Err(err) = mirror
+                .measure_duration(target_db)
+                .context("Failed to measure transfer rate")
+            {
+                warn!("{err:#}");
             }
         });
 
@@ -252,12 +272,15 @@ impl Statistics for Mirrors {
             .write(true)
             .create(true)
             .append(false)
-            .open(path)?;
+            .open(path)
+            .context(format!("Could not create file `{}`", path.display()))?;
+
         let mut wtr = csv::Writer::from_writer(file);
         for mirror in self.iter() {
             wtr.serialize(mirror)?;
         }
         wtr.flush()?;
+
         Ok(())
     }
 }
@@ -336,7 +359,9 @@ impl ToPacmanMirrorList for Mirrors {
             .write(true)
             .create(true)
             .append(false)
-            .open(path)?;
+            .open(path)
+            .context(format!("Could not create file `{}`", path.display()))?;
+
         let mut file = BufWriter::new(file);
         std::io::Write::write_all(&mut file, self.header(source_url)?.as_bytes())?;
         std::io::Write::write_all(&mut file, self.to_pacman_mirror_list()?.as_bytes())?;

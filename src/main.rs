@@ -7,7 +7,7 @@ use std::{
     path::Path,
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
 use mimalloc::MiMalloc;
 use tracing::debug;
@@ -24,37 +24,26 @@ static GLOBAL: MiMalloc = MiMalloc;
 fn main() -> Result<()> {
     let filter =
         EnvFilter::try_from_default_env().unwrap_or(EnvFilter::try_new("pacman_mirrorup=info")?);
-    if let Err(err) = tracing_subscriber::fmt()
+    tracing_subscriber::fmt()
         .with_env_filter(filter)
         .without_time()
         .with_writer(io::stderr)
         .try_init()
-    {
-        bail!("Failed to initialize tracing subscriber: {err}");
-    }
+        .map_err(|err| anyhow!("{err:#}"))
+        .context("Failed to initialize tracing subscriber")?;
 
     let arguments = Arguments::parse();
     debug!("Run with {:?}", arguments);
 
     if let Some(output_file) = &arguments.output_file {
         if output_file.exists() {
-            bail!(
-                "`{}` is exist.",
-                output_file
-                    .to_str()
-                    .context("Failed to convert path to string")?
-            );
+            bail!("`{}` is exist.", output_file.display());
         }
     }
 
     if let Some(stats_file) = &arguments.stats_file {
         if stats_file.exists() {
-            bail!(
-                "`{}` is exist.",
-                stats_file
-                    .to_str()
-                    .context("Failed to convert path to string")?
-            );
+            bail!("`{}` is exist.", stats_file.display());
         }
     }
 
@@ -77,22 +66,43 @@ fn main() -> Result<()> {
     };
     debug!("Excluded mirrors: {excluded_mirrors:?}");
 
-    let mirrors_status: MirrorsStatus = MirrorsStatus::from_online_json(&arguments.source_url)?;
-    let best_synced_mirrors: Mirrors =
-        mirrors_status.best_synced_mirrors(arguments.max_check, excluded_mirrors)?;
-    let best_mirrors: Mirrors =
-        best_synced_mirrors.evaluate(arguments.mirrors, arguments.target_db)?;
+    let mirrors_status: MirrorsStatus = MirrorsStatus::from_online_json(&arguments.source_url)
+        .context(format!(
+            "Failed to fetch mirrors status from `{}`",
+            arguments.source_url
+        ))?;
+
+    let best_synced_mirrors: Mirrors = mirrors_status
+        .best_synced_mirrors(arguments.max_check, excluded_mirrors)
+        .context("Could not filter best synced mirrors")?;
+
+    let best_mirrors: Mirrors = best_synced_mirrors
+        .evaluate(arguments.mirrors, arguments.target_db)
+        .context("Failed to evaluate mirror")?;
 
     if let Some(output_file) = &arguments.output_file {
         // Write to file
-        best_mirrors.to_mirrorlist_file(output_file, &arguments.source_url)?;
+        best_mirrors
+            .to_mirrorlist_file(output_file, &arguments.source_url)
+            .context(format!(
+                "Could not write to mirrorlist file `{}`",
+                output_file.display()
+            ))?;
     } else {
         // Write to stdout
-        print!("{}", &best_mirrors.to_pacman_mirror_list()?);
+        print!(
+            "{}",
+            &best_mirrors
+                .to_pacman_mirror_list()
+                .context("Could not create pacman mirror list format")?
+        );
     }
 
     if let Some(stats_file) = &arguments.stats_file {
-        best_mirrors.to_csv(stats_file)?;
+        best_mirrors.to_csv(stats_file).context(format!(
+            "Failed to save stats file `{}`",
+            stats_file.display()
+        ))?;
     }
 
     Ok(())
@@ -100,7 +110,12 @@ fn main() -> Result<()> {
 
 /// Load excluded mirror list form file
 fn read_exclude_from(file: &Path) -> Result<Vec<String>> {
-    let lines = io::BufReader::new(File::open(file)?).lines();
+    let lines = io::BufReader::new(File::open(file).context(format!(
+        "Could not open excluded mirror file `{}`",
+        file.display()
+    ))?)
+    .lines();
+
     let excluded_mirrors: Vec<String> = lines
         .into_iter()
         .filter_map(|line| line.ok())
