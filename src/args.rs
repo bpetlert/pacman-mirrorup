@@ -1,6 +1,8 @@
-use crate::mirror::TargetDb;
-use clap::Parser;
 use std::path::PathBuf;
+
+use clap::Parser;
+
+use crate::mirror::TargetDb;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

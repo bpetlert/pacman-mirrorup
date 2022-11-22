@@ -1,22 +1,25 @@
-use anyhow::{bail, Context, Result};
-use clap::Parser;
-use mimalloc::MiMalloc;
+mod args;
+mod mirror;
+
 use std::{
     fs::File,
     io::{self, BufRead},
     path::Path,
 };
+
+use anyhow::{bail, Context, Result};
+use clap::Parser;
+use mimalloc::MiMalloc;
 use tracing::debug;
 use tracing_subscriber::EnvFilter;
 
+use crate::{
+    args::Arguments,
+    mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMirrorList},
+};
+
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
-
-mod args;
-mod mirror;
-
-use args::Arguments;
-use mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMirrorList};
 
 fn main() -> Result<()> {
     let filter =
