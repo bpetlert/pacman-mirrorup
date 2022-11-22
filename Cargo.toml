@@ -17,18 +17,18 @@ publish = false
 [dependencies]
 anyhow = "1.0.66"
 chrono = { version = "0.4.23", default-features = false, features = ["clock"] }
-clap = { version = "4.0.25", features = ["derive"] }
+clap = { version = "4.0.26", features = ["derive"] }
 csv = "1.1.6"
 mimalloc = "0.1.32"
-rayon = "1.5.3"
-reqwest = { version = "0.11.12", features = [
+rayon = "1.6.0"
+reqwest = { version = "0.11.13", features = [
   "blocking",
   "gzip",
   "json",
   "rustls-tls",
 ], default-features = false }
 serde = { version = "1.0.147", features = ["derive"] }
-serde_json = "1.0.87"
+serde_json = "1.0.89"
 tracing = { version = "0.1.37", features = [
   "max_level_debug",
   "release_max_level_debug",
