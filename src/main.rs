@@ -50,10 +50,12 @@ fn main() -> Result<()> {
     rayon::ThreadPoolBuilder::new()
         .num_threads(arguments.threads)
         .build_global()
-        .context(format!(
-            "Failed to set number of rayon threads to {}",
-            arguments.threads
-        ))?;
+        .with_context(|| {
+            format!(
+                "Failed to set number of rayon threads to {}",
+                arguments.threads
+            )
+        })?;
 
     // Merge all excluded mirrors from --exclude and --exclude-from option
     let excluded_mirrors: Option<Vec<String>> = {
@@ -67,10 +69,12 @@ fn main() -> Result<()> {
     debug!("Excluded mirrors: {excluded_mirrors:?}");
 
     let mirrors_status: MirrorsStatus = MirrorsStatus::from_online_json(&arguments.source_url)
-        .context(format!(
-            "Failed to fetch mirrors status from `{}`",
-            arguments.source_url
-        ))?;
+        .with_context(|| {
+            format!(
+                "Failed to fetch mirrors status from `{}`",
+                arguments.source_url
+            )
+        })?;
 
     let best_synced_mirrors: Mirrors = mirrors_status
         .best_synced_mirrors(arguments.max_check, excluded_mirrors)
@@ -84,10 +88,12 @@ fn main() -> Result<()> {
         // Write to file
         best_mirrors
             .to_mirrorlist_file(output_file, &arguments.source_url)
-            .context(format!(
-                "Could not write to mirrorlist file `{}`",
-                output_file.display()
-            ))?;
+            .with_context(|| {
+                format!(
+                    "Could not write to mirrorlist file `{}`",
+                    output_file.display()
+                )
+            })?;
     } else {
         // Write to stdout
         print!(
@@ -99,10 +105,9 @@ fn main() -> Result<()> {
     }
 
     if let Some(stats_file) = &arguments.stats_file {
-        best_mirrors.to_csv(stats_file).context(format!(
-            "Failed to save stats file `{}`",
-            stats_file.display()
-        ))?;
+        best_mirrors
+            .to_csv(stats_file)
+            .with_context(|| format!("Failed to save stats file `{}`", stats_file.display()))?;
     }
 
     Ok(())
@@ -110,11 +115,11 @@ fn main() -> Result<()> {
 
 /// Load excluded mirror list form file
 fn read_exclude_from(file: &Path) -> Result<Vec<String>> {
-    let lines = io::BufReader::new(File::open(file).context(format!(
-        "Could not open excluded mirror file `{}`",
-        file.display()
-    ))?)
-    .lines();
+    let lines =
+        io::BufReader::new(File::open(file).with_context(|| {
+            format!("Could not open excluded mirror file `{}`", file.display())
+        })?)
+        .lines();
 
     let excluded_mirrors: Vec<String> = lines
         .into_iter()

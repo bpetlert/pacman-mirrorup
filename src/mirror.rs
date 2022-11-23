@@ -83,7 +83,7 @@ impl MirrorsStatus {
         let response = client
             .get(url.clone())
             .send()
-            .context(format!("Failed to fetch `{url}`"))?;
+            .with_context(|| format!("Failed to fetch `{url}`"))?;
 
         let mirrors_status: MirrorsStatus = response
             .json()
@@ -183,7 +183,7 @@ impl Benchmark for Mirror {
         let response = client
             .get(url.clone())
             .send()
-            .context(format!("Failed to fetch `{url}`"))?;
+            .with_context(|| format!("Failed to fetch `{url}`"))?;
 
         if response.status().is_success() {
             let duration: f64 = start.elapsed().as_millis() as f64;
@@ -273,7 +273,7 @@ impl Statistics for Mirrors {
             .create(true)
             .append(false)
             .open(path)
-            .context(format!("Could not create file `{}`", path.display()))?;
+            .with_context(|| format!("Could not create file `{}`", path.display()))?;
 
         let mut wtr = csv::Writer::from_writer(file);
         for mirror in self.iter() {
@@ -360,7 +360,7 @@ impl ToPacmanMirrorList for Mirrors {
             .create(true)
             .append(false)
             .open(path)
-            .context(format!("Could not create file `{}`", path.display()))?;
+            .with_context(|| format!("Could not create file `{}`", path.display()))?;
 
         let mut file = BufWriter::new(file);
         std::io::Write::write_all(&mut file, self.header(source_url)?.as_bytes())?;
