@@ -56,13 +56,14 @@ $ cd pacman-mirrorup
 $ makepkg -p PKGBUILD.local
 $ pacman -U pacman-mirrorup-xxxx-1-x86_64.pkg.tar
 
-Then enable/start pacman-mirrorup.timer
+== Usage
+
+=== Run as systemd service
+
+pacman-mirrorup provides systemd timer unit which can be enabled by
 
 [source,console]
-$ systemctl enable pacman-mirrorup.timer
-$ systemctl start pacman-mirrorup.timer
-
-== Configuration
+$ systemctl enable --now pacman-mirrorup.timer
 
 To change the options of pacman-mirrorup service, run `systemctl edit pacman-mirrorup.service`
 
@@ -92,6 +93,11 @@ To change the options of pacman-mirrorup timer, run `systemctl edit pacman-mirro
 OnCalendar=
 OnCalendar=daily
 ----
+
+=== Run as command line
+
+pacman-mirrorup can also be used directly from console.
+Without `--output-file` option, pacman-mirrorup will display output on STDOUT.
 
 == License
 
