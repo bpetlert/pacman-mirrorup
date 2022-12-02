@@ -5,12 +5,13 @@ use std::{
     fs::File,
     io::{self, BufRead},
     path::Path,
+    process::ExitCode,
 };
 
 use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
 use mimalloc::MiMalloc;
-use tracing::debug;
+use tracing::{debug, error};
 use tracing_subscriber::EnvFilter;
 
 use crate::{
@@ -21,7 +22,7 @@ use crate::{
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-fn main() -> Result<()> {
+fn run() -> Result<()> {
     let filter =
         EnvFilter::try_from_default_env().unwrap_or(EnvFilter::try_new("pacman_mirrorup=info")?);
     tracing_subscriber::fmt()
@@ -141,6 +142,14 @@ fn merge_exclude_mirror_list(lists: Vec<Vec<String>>) -> Result<Option<Vec<Strin
     } else {
         Ok(Some(list))
     }
+}
+
+fn main() -> ExitCode {
+    if let Err(err) = run() {
+        error!("{err:#}");
+        return ExitCode::FAILURE;
+    }
+    ExitCode::SUCCESS
 }
 
 #[cfg(test)]
