@@ -10,7 +10,7 @@ A service to retrieve the best and latest Pacman mirror list based on user's geo
 
 toc::[]
 
-Pacman-mirrorup uses JSON from https://www.archlinux.org/mirrors/status/[Arch Linux's mirror status] as data source.
+*pacman-mirrorup* uses JSON from https://www.archlinux.org/mirrors/status/[Arch Linux's mirror status] as data source.
 It applies filters as the following to original data:
 
 . Only active mirror
@@ -20,8 +20,10 @@ It applies filters as the following to original data:
 
 To take user's geography into consideration.
 All filtered mirrors are tested data transfer rate.
-The mirror's score from original data is weighted using transfer rate and then select the best N mirrors.
-The best N mirrors can be changed by `--mirror` option, default is 10.
+The mirror's score from original data is weighted using transfer rate.
+In other words, mirror's score is refined by using user's download speed.
+Finally, the best N mirrors are selected.
+The best N mirrors can be changed by `--mirror` option, the default is 10.
 
 The total number of synced mirrors to be tested is 100.
 This number can be changed by `--max-check` option.
