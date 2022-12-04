@@ -6,7 +6,7 @@ image:https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prere
 image:https://img.shields.io/aur/version/pacman-mirrorup?style=flat-square["AUR: pacman-mirrorup",link=https://aur.archlinux.org/packages/pacman-mirrorup/]
 image:https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-square["License: GPL-3.0-or-later",link=./COPYING]
 
-A service to retrieve the best and latest Pacman mirror list based on user's geography
+*pacman-mirrorup* is a program to retrieve the best and latest Pacman mirror list based on user's geography.
 
 toc::[]
 

@@ -2,7 +2,7 @@
 pkgname=pacman-mirrorup
 pkgver=0.9.0
 pkgrel=1
-pkgdesc="A service to retrieve the best and latest Pacman mirror list based on user's geography"
+pkgdesc="A program to retrieve the best and latest Pacman mirror list based on user's geography"
 arch=('x86_64')
 url="https://github.com/bpetlert/pacman-mirrorup"
 license=('GPL-3.0-or-later')
