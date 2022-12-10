@@ -82,6 +82,14 @@ fn run() -> Result<()> {
         .evaluate(arguments.mirrors, arguments.target_db)
         .context("Failed to evaluate mirror")?;
 
+    // Save stats file
+    if let Some(stats_file) = &arguments.stats_file {
+        best_mirrors
+            .to_csv(stats_file)
+            .with_context(|| format!("Failed to save stats file `{}`", stats_file.display()))?;
+    }
+
+    // Save or display mirrors
     if let Some(output_file) = &arguments.output_file {
         // Write to file
         best_mirrors
@@ -100,12 +108,6 @@ fn run() -> Result<()> {
                 .to_pacman_mirror_list()
                 .context("Could not create pacman mirror list format")?
         );
-    }
-
-    if let Some(stats_file) = &arguments.stats_file {
-        best_mirrors
-            .to_csv(stats_file)
-            .with_context(|| format!("Failed to save stats file `{}`", stats_file.display()))?;
     }
 
     Ok(())
