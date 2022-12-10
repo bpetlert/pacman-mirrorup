@@ -2,7 +2,10 @@ mod args;
 mod exclude;
 mod mirror;
 
-use std::{io, process::ExitCode};
+use std::{
+    io::{self, Write},
+    process::ExitCode,
+};
 
 use anyhow::{anyhow, bail, Context, Result};
 use clap::Parser;
@@ -89,7 +92,7 @@ fn run() -> Result<()> {
             .with_context(|| format!("Failed to save stats file `{}`", stats_file.display()))?;
     }
 
-    // Save or display mirrors
+    // Save mirrors to file
     if let Some(output_file) = &arguments.output_file {
         // Write to file
         best_mirrors
@@ -100,14 +103,25 @@ fn run() -> Result<()> {
                     output_file.display()
                 )
             })?;
-    } else {
-        // Write to stdout
-        print!(
-            "{}",
-            &best_mirrors
-                .to_pacman_mirror_list()
-                .context("Could not create pacman mirror list format")?
-        );
+        return Ok(());
+    }
+
+    // Write to stdout
+    let mirror_list: String = best_mirrors
+        .to_pacman_mirror_list()
+        .context("Could not create pacman mirror list format")?;
+    let mut stdout = io::BufWriter::new(io::stdout().lock());
+    if let Err(err) =
+        writeln!(stdout, "{mirror_list}").context("Could not write mirror list to STDOUT")
+    {
+        if let Some(io_err) = err.downcast_ref::<io::Error>() {
+            match io_err.kind() {
+                io::ErrorKind::BrokenPipe => return Ok(()),
+                _ => bail!("{err:#}"),
+            }
+        } else {
+            bail!("{err:#}");
+        }
     }
 
     Ok(())
