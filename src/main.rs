@@ -15,7 +15,7 @@ use tracing_subscriber::EnvFilter;
 
 use crate::{
     args::Arguments,
-    exclude::{merge_exclude_mirror_list, read_exclude_from},
+    exclude::{ExcludeKind, ExcludedMirrors},
     mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMirrorList},
 };
 
@@ -59,13 +59,24 @@ fn run() -> Result<()> {
         })?;
 
     // Merge all excluded mirrors from --exclude and --exclude-from option
-    let excluded_mirrors: Option<Vec<String>> = {
-        let list1 = arguments.exclude.unwrap_or_default();
-        let list2 = match arguments.exclude_from {
-            Some(exclude_file) => read_exclude_from(&exclude_file)?,
-            None => Vec::new(),
-        };
-        merge_exclude_mirror_list(vec![list1, list2])?
+    let excluded_mirrors: Option<ExcludedMirrors> = {
+        let mut exclude = ExcludedMirrors::new();
+
+        if let Some(list) = arguments.exclude {
+            for m in list {
+                exclude.add(ExcludeKind::try_from(m.as_str())?);
+            }
+        }
+
+        if let Some(f) = arguments.exclude_from {
+            exclude.add_from(&f)?;
+        }
+
+        if exclude.is_empty() {
+            None
+        } else {
+            Some(exclude)
+        }
     };
     debug!("Excluded mirrors: {excluded_mirrors:?}");
 

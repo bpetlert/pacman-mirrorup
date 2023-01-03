@@ -13,6 +13,8 @@ use reqwest::{self, blocking::Client, Url};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 
+use crate::exclude::{ExcludeKind, ExcludedMirrors};
+
 static APP_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
     "/",
@@ -102,7 +104,7 @@ pub trait Filter {
     fn best_synced_mirrors(
         &self,
         max_check: u32,
-        excluded_mirrors: Option<Vec<String>>,
+        excluded_mirrors: Option<ExcludedMirrors>,
     ) -> Result<Mirrors>;
 }
 
@@ -110,8 +112,9 @@ impl Filter for MirrorsStatus {
     fn best_synced_mirrors(
         &self,
         max_check: u32,
-        excluded_mirrors: Option<Vec<String>>,
+        excluded_mirrors: Option<ExcludedMirrors>,
     ) -> Result<Mirrors> {
+        // Primary filter
         let mut mirrors: Mirrors = self
             .urls
             .iter()
@@ -122,18 +125,21 @@ impl Filter for MirrorsStatus {
                 Some(d) => d < 3600,
                 None => false,
             })
-            .filter(|m| {
-                if let Some(exclude) = &excluded_mirrors {
-                    let domain_name = Url::parse(&m.url).unwrap();
-                    !exclude
-                        .iter()
-                        .any(|url| url == domain_name.domain().unwrap())
-                } else {
-                    true
-                }
-            })
             .cloned()
             .collect();
+
+        // Secondary filter: excluded mirrors
+        if let Some(exclude) = excluded_mirrors {
+            mirrors.retain(|m| {
+                let domain_name = Url::parse(&m.url).unwrap().domain().unwrap().to_lowercase();
+                let country = m.country.to_lowercase();
+                let country_code = m.country_code.to_lowercase();
+
+                !exclude.is_exclude(&ExcludeKind::Domain(domain_name))
+                    && !exclude.is_exclude(&ExcludeKind::Country(country))
+                    && !exclude.is_exclude(&ExcludeKind::CountryCode(country_code))
+            });
+        }
 
         // Sort by delay value ascending
         mirrors.sort_by(|a, b| a.delay.cmp(&b.delay));
@@ -434,12 +440,11 @@ mod tests {
         ));
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
-        let excluded_mirrors = Some(vec![
-            "mirrors.kernel.org".to_string(),
-            "mirror.xtom.com.hk".to_string(),
-        ]);
+        let mut excluded_mirrors = ExcludedMirrors::new();
+        excluded_mirrors.add(ExcludeKind::Domain("mirrors.kernel.org".to_string()));
+        excluded_mirrors.add(ExcludeKind::Domain("mirror.xtom.com.hk".to_string()));
         let mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(0, excluded_mirrors)
+            .best_synced_mirrors(0, Some(excluded_mirrors))
             .expect("Get best synced mirrors");
 
         assert_eq!(
