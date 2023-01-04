@@ -29,20 +29,36 @@ The total number of synced mirrors to be tested is 100.
 This number can be changed by `--max-check` option.
 Set it to zero to test all synced mirrors.
 
-To exclude a specific mirror, use `--exclude <A-DOMAIN-NAME>` option.
+To exclude a specific mirror, use `--exclude` option.
 This command line option can be specified many times.
+[source,console]
+$ pacman-mirrorup \
+    --exclude <A-DOMAIN-NAME> \
+    --exclude domain=<A-DOMAIN-NAME> \
+    --exclude country=<A-COUNTRY-NAME> \
+    --exclude country_code=<A-COUNTRY-CODE>
+
 The excluded mirror list could also be loaded from a file using `--exclude-from <FILE>` option.
-Format is one domain name per line.
+Format is one excluded pattern per line.
 For example:
 
 .excluded_mirrors.conf
 [source,conf]
 ----
-# This is a comment
+# This is a comment.
 ban.this.mirror
 
-# This is a comment too
-ban.this-mirror.also
+; This is a comment too.
+domain = ban.this-mirror.also
+
+# Without `domain =`
+ban.this.mirror
+
+# Filter by country name
+country = SomeCountry
+
+# Filter by country code
+country_code = SC
 ----
 
 == Installation
