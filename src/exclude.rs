@@ -117,10 +117,6 @@ impl ExcludedMirrors {
         Ok(())
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.exclude_list.is_empty()
-    }
-
     pub fn is_exclude(&self, kind: &ExcludeKind) -> bool {
         self.exclude_list.contains(kind)
     }

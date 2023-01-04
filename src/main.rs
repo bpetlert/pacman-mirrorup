@@ -59,7 +59,11 @@ fn run() -> Result<()> {
         })?;
 
     // Merge all excluded mirrors from --exclude and --exclude-from option
-    let excluded_mirrors: Option<ExcludedMirrors> = {
+    let excluded_mirrors: Option<ExcludedMirrors> = 'excluded_mirrors: {
+        if arguments.exclude.is_none() && arguments.exclude_from.is_none() {
+            break 'excluded_mirrors None;
+        }
+
         let mut exclude = ExcludedMirrors::new();
 
         if let Some(list) = arguments.exclude {
@@ -72,11 +76,7 @@ fn run() -> Result<()> {
             exclude.add_from(&f)?;
         }
 
-        if exclude.is_empty() {
-            None
-        } else {
-            Some(exclude)
-        }
+        Some(exclude)
     };
     debug!("Excluded mirrors: {excluded_mirrors:?}");
 
