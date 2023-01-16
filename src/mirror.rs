@@ -3,6 +3,7 @@ use std::{
     fmt::Write,
     fs::OpenOptions,
     io::BufWriter,
+    ops::{Deref, DerefMut},
     path::Path,
     time::{Duration, Instant},
 };
@@ -42,6 +43,9 @@ pub struct MirrorsStatus {
     version: usize,
 }
 
+#[derive(Default, Deserialize, Clone, Debug)]
+pub struct Mirrors(Vec<Mirror>);
+
 #[derive(Default, Deserialize, Serialize, Clone, Debug)]
 pub struct Mirror {
     url: String,
@@ -65,7 +69,29 @@ pub struct Mirror {
     weighted_score: Option<f64>,
 }
 
-pub type Mirrors = Vec<Mirror>;
+impl Deref for Mirrors {
+    type Target = Vec<Mirror>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Mirrors {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl FromIterator<Mirror> for Mirrors {
+    fn from_iter<T: IntoIterator<Item = Mirror>>(iter: T) -> Self {
+        let mut mirrors: Self = Self::default();
+        for i in iter {
+            mirrors.0.push(i);
+        }
+        mirrors
+    }
+}
 
 impl MirrorsStatus {
     /// Fetch mirrors status from server
