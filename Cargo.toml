@@ -17,7 +17,7 @@ publish = false
 [dependencies]
 anyhow = "1.0.68"
 chrono = { version = "0.4.23", default-features = false, features = ["clock"] }
-clap = { version = "4.0.32", features = ["derive"] }
+clap = { version = "4.1.1", features = ["derive"] }
 csv = "1.1.6"
 mimalloc = "0.1.34"
 once_cell = "1.17.0"
