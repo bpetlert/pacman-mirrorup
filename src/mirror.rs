@@ -28,7 +28,6 @@ static APP_USER_AGENT: &str = concat!(
 #[derive(clap::ValueEnum, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum TargetDb {
     Core,
-    Community,
     Extra,
 }
 
@@ -185,7 +184,7 @@ impl Filter for MirrorsStatus {
 
 trait Benchmark {
     /// Measure time (in seconds) it took to connect (from user's geography)
-    /// and retrive the '[core,community,extra]/os/x86_64/[core,community,extra].db' file from the given URL.
+    /// and retrive the '[core,extra]/os/x86_64/[core,extra].db' file from the given URL.
     fn measure_duration(&mut self, target_db: TargetDb) -> Result<()>;
 }
 
@@ -194,7 +193,6 @@ impl Benchmark for Mirror {
         let url: Url = Url::parse(&self.url)?;
         let url: Url = match target_db {
             TargetDb::Core => url.join("core/os/x86_64/core.db")?,
-            TargetDb::Community => url.join("community/os/x86_64/community.db")?,
             TargetDb::Extra => url.join("extra/os/x86_64/extra.db")?,
         };
 

@@ -22,7 +22,7 @@ pub struct Arguments {
         long,
         value_name = "REPO-NAME",
         ignore_case = true,
-        default_value = "Community",
+        default_value = "Extra",
         value_enum
     )]
     pub target_db: TargetDb,
@@ -73,7 +73,7 @@ mod tests {
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
-        assert_eq!(args.target_db, TargetDb::Community);
+        assert_eq!(args.target_db, TargetDb::Extra);
         assert_eq!(args.output_file, None);
         assert_eq!(args.stats_file, None);
         assert_eq!(args.max_check, 100);
@@ -90,7 +90,7 @@ mod tests {
             "--source-url",
             "https://www.archlinux.org/mirrors/status/json/",
             "--target-db",
-            "community",
+            "extra",
             "--output-file",
             "/tmp/mirrorlist",
             "--stats-file",
@@ -108,7 +108,7 @@ mod tests {
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
-        assert_eq!(args.target_db, TargetDb::Community);
+        assert_eq!(args.target_db, TargetDb::Extra);
         assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
         assert_eq!(args.max_check, 200);
@@ -123,7 +123,7 @@ mod tests {
             "-S",
             "https://www.archlinux.org/mirrors/status/json/",
             "-t",
-            "community",
+            "extra",
             "-o",
             "/tmp/mirrorlist",
             "-s",
@@ -141,7 +141,7 @@ mod tests {
             args.source_url,
             "https://www.archlinux.org/mirrors/status/json/".to_owned()
         );
-        assert_eq!(args.target_db, TargetDb::Community);
+        assert_eq!(args.target_db, TargetDb::Extra);
         assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
         assert_eq!(args.max_check, 200);
