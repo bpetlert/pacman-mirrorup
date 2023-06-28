@@ -105,7 +105,7 @@ impl ExcludedMirrors {
             format!("Could not open excluded mirror file `{}`", file.display())
         })?)
         .lines()
-        .filter_map(|line| line.ok())
+        .map_while(Result::ok)
         .collect();
 
         for line in lines {
