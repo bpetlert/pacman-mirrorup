@@ -51,7 +51,7 @@ pub struct Mirror {
     protocol: String,
     last_sync: Option<String>,
     completion_pct: f64,
-    delay: Option<usize>,
+    delay: Option<i64>,
     duration_avg: Option<f64>,
     duration_stddev: Option<f64>,
     score: Option<f64>,
@@ -406,6 +406,13 @@ mod tests {
     use regex::Regex;
 
     #[test]
+    fn test_online_deserialize_mirrors_status() {
+        let _: MirrorsStatus =
+            MirrorsStatus::from_online_json("https://www.archlinux.org/mirrors/status/json/")
+                .unwrap();
+    }
+
+    #[test]
     fn test_deserialize_mirrors_status() {
         let mirrors_status_raw = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -473,7 +480,7 @@ mod tests {
 
         assert_eq!(
             mirrors.len(),
-            234,
+            240,
             "Number of mirrors returned = {}",
             mirrors.len()
         );
@@ -521,7 +528,7 @@ mod tests {
             .map(|m| m.weighted_score.expect("Weighted score value"))
             .sum();
         assert!(
-            (sum - 45.90635811739935).abs() < std::f64::EPSILON,
+            (sum - 128.9041338594372).abs() < std::f64::EPSILON,
             "sum = {}",
             sum
         );
@@ -551,7 +558,7 @@ mod tests {
             .weighted_score
             .expect("Weighted score value");
         assert!(
-            (first - 1.1922723128592017).abs() < std::f64::EPSILON,
+            (first - 2.3526556787847417).abs() < std::f64::EPSILON,
             "first weighted score = {}",
             first
         );
@@ -618,12 +625,16 @@ mod tests {
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mirrors: Mirrors = mirrors_status.urls;
         let mirror_format =
-            Regex::new(r"Server\x20=\x20(http(s?)|rsync)://(\S+\.\S+/)(\$repo/os/\$arch)")
+            Regex::new(r"Server\x20=\x20(http(s?)|rsync|ftp)://(\S+\.\S+/)(\$repo/os/\$arch)")
                 .expect("Creating regex");
 
         // Check Mirror
         for mirror in mirrors.iter() {
-            assert!(mirror_format.is_match(&mirror.to_pacman_mirror_list().unwrap()));
+            assert!(
+                mirror_format.is_match(&mirror.to_pacman_mirror_list().unwrap()),
+                "Pacman mirrorlist: {:#?}",
+                mirror.to_pacman_mirror_list().unwrap()
+            );
         }
 
         // Check Mirrors
