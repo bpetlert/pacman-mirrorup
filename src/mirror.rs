@@ -34,12 +34,12 @@ pub enum TargetDb {
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct MirrorsStatus {
-    cutoff: usize,
+    cutoff: u64,
     last_check: String,
-    num_checks: usize,
-    check_frequency: usize,
+    num_checks: u64,
+    check_frequency: u64,
     urls: Mirrors,
-    version: usize,
+    version: u64,
 }
 
 #[derive(Default, Deserialize, Clone, Debug)]
