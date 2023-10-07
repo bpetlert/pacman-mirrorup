@@ -5,15 +5,9 @@ use std::{
     path::Path,
 };
 
-use anyhow::{anyhow, Context, Result};
-use once_cell::sync::OnceCell;
+use anyhow::{Context, Result};
+use once_cell::sync::Lazy;
 use regex::{Regex, RegexSet};
-
-const EXCLUDE_PATTERN: [&str; 3] = [
-    r"domain\s*=\s*(?P<domain>\S*)",             // Domain
-    r"country\s*=\s*(?P<country>\S*)",           // Country
-    r"country_code\s*=\s*(?P<country_code>\S*)", // Country Code
-];
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum ExcludeKind {
@@ -31,59 +25,65 @@ pub struct ExcludedMirrors {
 impl TryFrom<&str> for ExcludeKind {
     type Error = anyhow::Error;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let set: &RegexSet = {
-            static RE: OnceCell<RegexSet> = OnceCell::new();
-            RE.get_or_try_init(|| RegexSet::new(EXCLUDE_PATTERN))
-                .map_err(|err| anyhow!("{err:#?}"))
-                .context("Could not create exclude parser regex")?
-        };
-
-        let regexes: &Vec<Regex> = {
-            static RE: OnceCell<Vec<Regex>> = OnceCell::new();
-            RE.get_or_try_init(|| -> Result<Vec<Regex>, _> {
-                let reg: Vec<_> = set
-                    .patterns()
-                    .iter()
-                    .map(|pat| Regex::new(pat).unwrap())
-                    .collect();
-                Ok::<Vec<regex::Regex>, Self::Error>(reg)
-            })
-            .map_err(|err: _| anyhow!("{err:#?}"))
-            .context("Could not create exclude parser regex")?
-        };
-
-        if value.is_empty() {
+    /// Convert a line to exclude pattern
+    fn try_from(line: &str) -> Result<Self, Self::Error> {
+        if line.is_empty() {
             return Ok(ExcludeKind::Ignore);
         }
 
         // Remove comment
-        let value = value
+        let line = line
             .trim()
             .chars()
             .take_while(|c| *c != '#' && *c != ';')
             .collect::<String>();
-        let value = value.trim();
 
-        if value.is_empty() {
+        let line = line.trim().to_lowercase();
+
+        if line.is_empty() {
             return Ok(ExcludeKind::Ignore);
         }
 
-        let matches = set.matches(value);
+        static EXCLUDE_SET_RE: Lazy<RegexSet> = Lazy::new(|| {
+            RegexSet::new([
+                r"domain\s*=\s*(?P<domain>\S*)",             // Domain
+                r"country\s*=\s*(?P<country>\S*)",           // Country
+                r"country_code\s*=\s*(?P<country_code>\S*)", // Country Code
+            ])
+            .expect("Create exclude regex set")
+        });
 
-        if matches.matched(0) {
-            let domain: String = regexes[0].captures(value).unwrap()["domain"].to_string();
-            return Ok(ExcludeKind::Domain(domain.to_lowercase()));
-        } else if matches.matched(1) {
-            let country: String = regexes[1].captures(value).unwrap()["country"].to_string();
-            return Ok(ExcludeKind::Country(country.to_lowercase()));
-        } else if matches.matched(2) {
-            let country_code: String =
-                regexes[2].captures(value).unwrap()["country_code"].to_string();
-            return Ok(ExcludeKind::CountryCode(country_code.to_lowercase()));
+        static EXCLUDE_CAPTURE_RE: Lazy<Vec<Regex>> = Lazy::new(|| {
+            EXCLUDE_SET_RE
+                .patterns()
+                .iter()
+                .map(|pat| Regex::new(pat).expect("Create exclude capture regex"))
+                .collect()
+        });
+
+        const DOMAIN: usize = 0;
+        const COUNTRY: usize = 1;
+        const COUNTRY_CODE: usize = 2;
+
+        let matches = EXCLUDE_SET_RE.matches(&line);
+
+        if matches.matched(DOMAIN) {
+            return Ok(ExcludeKind::Domain(
+                EXCLUDE_CAPTURE_RE[DOMAIN].captures(&line).unwrap()["domain"].to_string(),
+            ));
+        } else if matches.matched(COUNTRY) {
+            return Ok(ExcludeKind::Country(
+                EXCLUDE_CAPTURE_RE[COUNTRY].captures(&line).unwrap()["country"].to_string(),
+            ));
+        } else if matches.matched(COUNTRY_CODE) {
+            return Ok(ExcludeKind::CountryCode(
+                EXCLUDE_CAPTURE_RE[COUNTRY_CODE].captures(&line).unwrap()["country_code"]
+                    .to_string(),
+            ));
         }
 
-        Ok(ExcludeKind::Domain(value.to_string().to_lowercase()))
+        // When no keyword found, return domain as default
+        Ok(ExcludeKind::Domain(line))
     }
 }
 
