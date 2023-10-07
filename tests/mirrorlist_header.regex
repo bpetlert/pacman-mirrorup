@@ -6,5 +6,5 @@
 #
 # pacman-mirrorup: https://github.com/bpetlert/pacman-mirrorup
 # source: https://www.archlinux.org/mirrors/status/json/
-# when: \S{3}, \d{2} \S{3} \d{4} \d{2}:\d{2}:\d{2} [\+\-]\d{4}
+# when: \S{3}, \d{1,2} \S{3} \d{4} \d{2}:\d{2}:\d{2} [\+\-]\d{4}
 #
