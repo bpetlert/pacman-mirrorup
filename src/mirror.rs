@@ -269,6 +269,9 @@ pub trait Statistics {
 
 impl Statistics for Mirrors {
     fn score(&mut self) {
+        // According to [Mirror Status](https://archlinux.org/mirrors/status/) for Mirror Score: lower is better,
+        // while transfer_score: higher is better. The weighting cannot apply directly. The mirror scores are needed
+        // to reverse using max score as based first.
         let max_score: f64 = self
             .iter()
             .map(|mirror| mirror.score.unwrap_or(std::f64::NAN))
