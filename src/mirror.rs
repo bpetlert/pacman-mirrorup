@@ -145,7 +145,7 @@ impl Filter for MirrorsStatus {
             .iter()
             .filter(|m| m.active)
             .filter(|m| m.protocol == "http" || m.protocol == "https")
-            .filter(|m| (m.completion_pct - 1.0).abs() < std::f64::EPSILON)
+            .filter(|m| (m.completion_pct - 1.0_f64).abs() < f64::EPSILON)
             .filter(|m| match m.delay {
                 Some(d) => d < 3600,
                 None => false,
@@ -274,13 +274,13 @@ impl Statistics for Mirrors {
         // to reverse using max score as based first.
         let max_score: f64 = self
             .iter()
-            .map(|mirror| mirror.score.unwrap_or(std::f64::NAN))
+            .map(|mirror| mirror.score.unwrap_or(f64::NAN))
             .reduce(f64::max)
             .unwrap_or(0.0_f64);
 
         self.iter_mut().for_each(|mirror| {
             let transfer_rate: f64 = mirror.transfer_rate.unwrap_or(0.0_f64);
-            let score: f64 = mirror.score.unwrap_or(std::f64::NAN);
+            let score: f64 = mirror.score.unwrap_or(f64::NAN);
             mirror.weighted_score = Some(transfer_rate * (max_score - score));
         });
     }
@@ -442,7 +442,7 @@ mod tests {
             assert!(m.protocol == "http" || m.protocol == "https");
 
             // 100% sync
-            assert!((m.completion_pct - 1.0).abs() < std::f64::EPSILON);
+            assert!((m.completion_pct - 1.0_f64).abs() < f64::EPSILON);
 
             // delay < 3600
             assert_ne!(m.delay, None);
@@ -528,7 +528,7 @@ mod tests {
             .map(|m| m.weighted_score.expect("Weighted score value"))
             .sum();
         assert!(
-            (sum - 128.9041338594372).abs() < std::f64::EPSILON,
+            (sum - 128.9041338594372).abs() < f64::EPSILON,
             "sum = {}",
             sum
         );
@@ -558,7 +558,7 @@ mod tests {
             .weighted_score
             .expect("Weighted score value");
         assert!(
-            (first - 2.3526556787847417).abs() < std::f64::EPSILON,
+            (first - 2.3526556787847417).abs() < f64::EPSILON,
             "first weighted score = {}",
             first
         );
@@ -570,7 +570,7 @@ mod tests {
             .weighted_score
             .expect("Weighted score value");
         assert!(
-            (last - 0.0_f64).abs() < std::f64::EPSILON,
+            (last - 0.0_f64).abs() < f64::EPSILON,
             "last weighted score = {}",
             last
         );
