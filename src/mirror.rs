@@ -275,12 +275,9 @@ impl Statistics for Mirrors {
         let max_score: f64 = self
             .iter()
             .map(|mirror| mirror.score.unwrap_or(std::f64::NAN))
-            .fold(0.0_f64, |mut max, val| {
-                if val > max {
-                    max = val;
-                }
-                max
-            });
+            .reduce(f64::max)
+            .unwrap_or(0.0_f64);
+
         self.iter_mut().for_each(|mirror| {
             let transfer_rate: f64 = mirror.transfer_rate.unwrap_or(0.0_f64);
             let score: f64 = mirror.score.unwrap_or(std::f64::NAN);
