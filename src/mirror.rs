@@ -10,9 +10,9 @@ use std::{
 
 use anyhow::{bail, Context, Result};
 use rayon::prelude::*;
-use reqwest::{self, blocking::Client, Url};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
+use url::Url;
 
 use crate::exclude::{ExcludeKind, ExcludedMirrors};
 
@@ -94,26 +94,14 @@ impl FromIterator<Mirror> for Mirrors {
 
 impl MirrorsStatus {
     /// Fetch mirrors status from server
-    pub fn from_online_json<T>(url: T) -> Result<Self>
-    where
-        T: reqwest::IntoUrl,
-    {
-        let client = Client::builder()
-            .user_agent(APP_USER_AGENT)
-            .gzip(true)
-            .http2_prior_knowledge()
-            .use_rustls_tls()
-            .build()
-            .context("Failed to create downloader")?;
-
-        let url: Url = url.into_url()?;
-        let response = client
-            .get(url.clone())
-            .send()
+    pub fn from_online_json(url: &str) -> Result<Self> {
+        let response = ureq::get(url)
+            .set("User-Agent", APP_USER_AGENT)
+            .call()
             .with_context(|| format!("Failed to fetch `{url}`"))?;
 
         let mirrors_status: MirrorsStatus = response
-            .json()
+            .into_json()
             .context("Failed to deserialize the response body as MirrorsStatus")?;
 
         Ok(mirrors_status)
@@ -198,29 +186,20 @@ impl Benchmark for Mirror {
 
         self.transfer_rate = None;
 
-        let client = Client::builder()
-            .user_agent(APP_USER_AGENT)
-            .no_gzip()
-            .no_proxy()
-            .timeout(Duration::from_secs(10))
-            .danger_accept_invalid_certs(true)
-            .use_rustls_tls()
-            .build()
-            .context("Failed to create downloader")?;
-
         let start = Instant::now();
-
-        let response = client
-            .get(url.clone())
-            .send()
+        let response = ureq::get(url.as_str())
+            .set("User-Agent", APP_USER_AGENT)
+            .timeout(Duration::from_secs(10))
+            .call()
             .with_context(|| format!("Failed to fetch `{url}`"))?;
 
-        if response.status().is_success() {
+        // If success
+        if 300 > response.status() && response.status() >= 200 {
             let duration: f64 = start.elapsed().as_millis() as f64;
             let transfer_time: f64 = duration / 1000.0_f64;
 
-            let file_size: f64 = match response.content_length() {
-                Some(fs) => fs as f64,
+            let file_size: f64 = match response.header("Content-Length") {
+                Some(cl) => cl.parse()?,
                 None => {
                     debug!("Transfer Rate: {url} => None");
                     return Ok(());
