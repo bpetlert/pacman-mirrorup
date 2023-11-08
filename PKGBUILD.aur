@@ -9,8 +9,6 @@ license=('GPL-3.0-or-later')
 depends=()
 makedepends=(cargo)
 options=(!lto)
-provides=("${pkgname}")
-conflicts=("${pkgname}")
 
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/bpetlert/${pkgname}/archive/${pkgver}.tar.gz")
 b2sums=('f5d21af2df367a5507e95ced5734a51cd856c8575cb8c8dbf6f3eec16688af817ef74f146330c68ab8cea5dc08c379334702a27881d3626539a489dd63ded1f0')
