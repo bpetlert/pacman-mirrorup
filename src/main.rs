@@ -66,14 +66,16 @@ fn run() -> Result<()> {
 
         let mut exclude = ExcludedMirrors::new();
 
+        if let Some(f) = arguments.exclude_from {
+            exclude.add_from(&f)?;
+        }
+
+        // Add excluded list from --exclude option after --exclude-from option,
+        // since the last occurrence of excluded pattern will overrride previous one.
         if let Some(list) = arguments.exclude {
             for m in list {
                 exclude.add(ExcludeKind::try_from(m.as_str())?);
             }
-        }
-
-        if let Some(f) = arguments.exclude_from {
-            exclude.add_from(&f)?;
         }
 
         Some(exclude)

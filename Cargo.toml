@@ -35,3 +35,6 @@ tracing-subscriber = { version = "0.3.18", features = [
 ], default-features = false }
 ureq = { version = "2.9.0", features = ["json"] }
 url = "2.4.1"
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"

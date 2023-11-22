@@ -4,8 +4,12 @@ ban.this.mirror
 # This is a comment too
 domain = ban.this-mirror.also
 
-domain = ban.this.mirror
-ban.this-mirror.also
+domain = ban.this.mirror.too
+ban.this-mirror.too.really
+
+!this.mirror.is.not.ban
 
 country = SomeCountry
 country_code = SC
+
+!domain=mirror2.in.somecountry

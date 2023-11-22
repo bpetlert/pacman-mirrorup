@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 use url::Url;
 
-use crate::exclude::{ExcludeKind, ExcludedMirrors};
+use crate::exclude::ExcludedMirrors;
 
 static APP_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -47,7 +47,7 @@ pub struct Mirrors(Vec<Mirror>);
 
 #[derive(Default, Deserialize, Serialize, Clone, Debug)]
 pub struct Mirror {
-    url: String,
+    pub url: String,
     protocol: String,
     last_sync: Option<String>,
     completion_pct: f64,
@@ -56,8 +56,8 @@ pub struct Mirror {
     duration_stddev: Option<f64>,
     score: Option<f64>,
     active: bool,
-    country: String,
-    country_code: String,
+    pub country: String,
+    pub country_code: String,
     isos: bool,
     ipv4: bool,
     ipv6: bool,
@@ -143,15 +143,7 @@ impl Filter for MirrorsStatus {
 
         // Secondary filter: excluded mirrors
         if let Some(exclude) = excluded_mirrors {
-            mirrors.retain(|m| {
-                let domain_name = Url::parse(&m.url).unwrap().domain().unwrap().to_lowercase();
-                let country = m.country.to_lowercase();
-                let country_code = m.country_code.to_lowercase();
-
-                !exclude.is_exclude(&ExcludeKind::Domain(domain_name))
-                    && !exclude.is_exclude(&ExcludeKind::Country(country))
-                    && !exclude.is_exclude(&ExcludeKind::CountryCode(country_code))
-            });
+            mirrors.retain(|m| !exclude.is_exclude(m));
         }
 
         // Sort by delay value ascending
@@ -381,6 +373,8 @@ impl ToPacmanMirrorList for Mirrors {
 
 #[cfg(test)]
 mod tests {
+    use crate::exclude::ExcludeKind;
+
     use super::*;
     use regex::Regex;
 
@@ -450,9 +444,17 @@ mod tests {
         ));
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
+
         let mut excluded_mirrors = ExcludedMirrors::new();
-        excluded_mirrors.add(ExcludeKind::Domain("mirrors.kernel.org".to_string()));
-        excluded_mirrors.add(ExcludeKind::Domain("mirror.xtom.com.hk".to_string()));
+        excluded_mirrors.add(ExcludeKind::Domain {
+            value: "mirrors.kernel.org".to_string(),
+            negate: false,
+        });
+        excluded_mirrors.add(ExcludeKind::Domain {
+            value: "mirror.xtom.com.hk".to_string(),
+            negate: false,
+        });
+
         let mirrors: Mirrors = mirrors_status
             .best_synced_mirrors(0, Some(excluded_mirrors))
             .expect("Get best synced mirrors");
