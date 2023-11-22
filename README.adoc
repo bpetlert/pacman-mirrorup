@@ -40,9 +40,13 @@ $ pacman-mirrorup \
 
 The excluded mirror list could also be loaded from a file using `--exclude-from <FILE>` option.
 Format is one excluded pattern per line.
+Any pattern with prefix `!` is a negated pattern;
+any matching mirror excluded by a previous pattern will become included again.
+The excluded list from `--exclude` option take precedence over list from `--exclude-from` option.
+The later occurrence of excluded pattern in list will also override any previous rules.
 For example:
 
-.excluded_mirrors.conf
+.excluded_mirrors
 [source,conf]
 ----
 # This is a comment.
@@ -59,6 +63,9 @@ country = SomeCountry
 
 # Filter by country code
 country_code = SC
+
+# Include this mirror, even though it was banned by previous rules
+!domain = mirror.in.SomeCountry
 ----
 
 == Installation
