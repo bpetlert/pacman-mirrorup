@@ -174,8 +174,9 @@ impl DerefMut for ExcludedMirrors {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use pretty_assertions::assert_eq;
+
+    use super::*;
 
     #[test]
     fn test_parse_exclude_kind() {

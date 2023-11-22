@@ -59,8 +59,9 @@ pub struct Arguments {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use clap::{CommandFactory, FromArgMatches};
+
+    use super::*;
 
     #[test]
     fn default_args() {

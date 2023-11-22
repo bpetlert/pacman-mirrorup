@@ -373,10 +373,10 @@ impl ToPacmanMirrorList for Mirrors {
 
 #[cfg(test)]
 mod tests {
-    use crate::exclude::ExcludeKind;
+    use regex::Regex;
 
     use super::*;
-    use regex::Regex;
+    use crate::exclude::ExcludeKind;
 
     #[test]
     fn test_online_deserialize_mirrors_status() {
