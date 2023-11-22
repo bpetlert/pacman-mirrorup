@@ -42,9 +42,9 @@ impl TryFrom<&str> for ExcludeKind {
 
         static EXCLUDE_SET_RE: Lazy<RegexSet> = Lazy::new(|| {
             RegexSet::new([
-                r"(?P<negate>!*)domain\s*=\s*(?P<domain>\S*)", // Domain
-                r"(?P<negate>!*)country\s*=\s*(?P<country>\S*)", // Country
-                r"(?P<negate>!*)country_code\s*=\s*(?P<country_code>\S*)", // Country Code
+                r"(?P<negate>!?)domain\s*=\s*(?P<domain>\S*)", // Domain
+                r"(?P<negate>!?)country\s*=\s*(?P<country>\S*)", // Country
+                r"(?P<negate>!?)country_code\s*=\s*(?P<country_code>\S*)", // Country Code
             ])
             .expect("Create exclude regex set")
         });
