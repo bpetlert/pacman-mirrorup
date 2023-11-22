@@ -11,7 +11,7 @@ use std::{
 use anyhow::{bail, Context, Result};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, warn};
+use tracing::{debug, info};
 use url::Url;
 
 use crate::exclude::ExcludedMirrors;
@@ -216,7 +216,7 @@ impl Benchmark for Mirrors {
                 .measure_duration(target_db)
                 .context("Failed to measure transfer rate")
             {
-                warn!("{err:#}");
+                info!("{err:#}");
             }
         });
 
