@@ -138,36 +138,13 @@ impl ExcludedMirrors {
         for exclude_kind in self.iter().rev() {
             match exclude_kind {
                 ExcludeKind::Ignore => continue,
-                ExcludeKind::Domain(d) => {
-                    if *d == domain_name {
-                        return true;
-                    }
-                }
-                ExcludeKind::NegateDomain(d) => {
-                    if *d == domain_name {
-                        return false;
-                    }
-                }
-                ExcludeKind::Country(c) => {
-                    if *c == country {
-                        return true;
-                    }
-                }
-                ExcludeKind::NegateCountry(c) => {
-                    if *c == country {
-                        return false;
-                    }
-                }
-                ExcludeKind::CountryCode(cc) => {
-                    if *cc == country_code {
-                        return true;
-                    }
-                }
-                ExcludeKind::NegateCountryCode(cc) => {
-                    if *cc == country_code {
-                        return false;
-                    }
-                }
+                ExcludeKind::Domain(d) if d == &domain_name => return true,
+                ExcludeKind::NegateDomain(d) if d == &domain_name => return false,
+                ExcludeKind::Country(c) if c == &country => return true,
+                ExcludeKind::NegateCountry(c) if c == &country => return false,
+                ExcludeKind::CountryCode(cc) if cc == &country_code => return true,
+                ExcludeKind::NegateCountryCode(cc) if cc == &country_code => return false,
+                _ => continue,
             }
         }
 
