@@ -446,14 +446,8 @@ mod tests {
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
 
         let mut excluded_mirrors = ExcludedMirrors::new();
-        excluded_mirrors.add(ExcludeKind::Domain {
-            value: "mirrors.kernel.org".to_string(),
-            negate: false,
-        });
-        excluded_mirrors.add(ExcludeKind::Domain {
-            value: "mirror.xtom.com.hk".to_string(),
-            negate: false,
-        });
+        excluded_mirrors.add(ExcludeKind::Domain("mirrors.kernel.org".to_string()));
+        excluded_mirrors.add(ExcludeKind::Domain("mirror.xtom.com.hk".to_string()));
 
         let mirrors: Mirrors = mirrors_status
             .best_synced_mirrors(0, Some(excluded_mirrors))

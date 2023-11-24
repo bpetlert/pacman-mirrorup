@@ -13,9 +13,12 @@ use crate::mirror::Mirror;
 #[derive(Debug, Eq, PartialEq)]
 pub enum ExcludeKind {
     Ignore,
-    Domain { value: String, negate: bool },
-    Country { value: String, negate: bool },
-    CountryCode { value: String, negate: bool },
+    Domain(String),
+    NegateDomain(String),
+    Country(String),
+    NegateCountry(String),
+    CountryCode(String),
+    NegateCountryCode(String),
 }
 
 impl TryFrom<&str> for ExcludeKind {
@@ -65,36 +68,35 @@ impl TryFrom<&str> for ExcludeKind {
 
         if matches.matched(DOMAIN) {
             let cap = EXCLUDE_CAPTURE_RE[DOMAIN].captures(&line).unwrap();
-            return Ok(ExcludeKind::Domain {
-                value: cap["domain"].to_string(),
-                negate: !cap["negate"].is_empty(),
-            });
+            if cap["negate"].is_empty() {
+                return Ok(ExcludeKind::Domain(cap["domain"].to_string()));
+            } else {
+                return Ok(ExcludeKind::NegateDomain(cap["domain"].to_string()));
+            }
         } else if matches.matched(COUNTRY) {
             let cap = EXCLUDE_CAPTURE_RE[COUNTRY].captures(&line).unwrap();
-            return Ok(ExcludeKind::Country {
-                value: cap["country"].to_string(),
-                negate: !cap["negate"].is_empty(),
-            });
+            if cap["negate"].is_empty() {
+                return Ok(ExcludeKind::Country(cap["country"].to_string()));
+            } else {
+                return Ok(ExcludeKind::NegateCountry(cap["country"].to_string()));
+            }
         } else if matches.matched(COUNTRY_CODE) {
             let cap = EXCLUDE_CAPTURE_RE[COUNTRY_CODE].captures(&line).unwrap();
-            return Ok(ExcludeKind::CountryCode {
-                value: cap["country_code"].to_string(),
-                negate: !cap["negate"].is_empty(),
-            });
+            if cap["negate"].is_empty() {
+                return Ok(ExcludeKind::CountryCode(cap["country_code"].to_string()));
+            } else {
+                return Ok(ExcludeKind::NegateCountryCode(
+                    cap["country_code"].to_string(),
+                ));
+            }
         }
 
         // When no keyword found, return domain as default
         //
         if let Some(domain) = line.strip_prefix('!') {
-            return Ok(ExcludeKind::Domain {
-                value: domain.to_string(),
-                negate: true,
-            });
+            return Ok(ExcludeKind::NegateDomain(domain.to_string()));
         }
-        Ok(ExcludeKind::Domain {
-            value: line,
-            negate: false,
-        })
+        Ok(ExcludeKind::Domain(line))
     }
 }
 
@@ -135,22 +137,37 @@ impl ExcludedMirrors {
 
         for exclude_kind in self.iter().rev() {
             match exclude_kind {
-                ExcludeKind::Domain { value, negate } => {
-                    if *value == domain_name {
-                        return !negate;
+                ExcludeKind::Ignore => continue,
+                ExcludeKind::Domain(d) => {
+                    if *d == domain_name {
+                        return true;
                     }
                 }
-                ExcludeKind::Country { value, negate } => {
-                    if *value == country {
-                        return !negate;
+                ExcludeKind::NegateDomain(d) => {
+                    if *d == domain_name {
+                        return false;
                     }
                 }
-                ExcludeKind::CountryCode { value, negate } => {
-                    if *value == country_code {
-                        return !negate;
+                ExcludeKind::Country(c) => {
+                    if *c == country {
+                        return true;
                     }
                 }
-                _ => continue,
+                ExcludeKind::NegateCountry(c) => {
+                    if *c == country {
+                        return false;
+                    }
+                }
+                ExcludeKind::CountryCode(cc) => {
+                    if *cc == country_code {
+                        return true;
+                    }
+                }
+                ExcludeKind::NegateCountryCode(cc) => {
+                    if *cc == country_code {
+                        return false;
+                    }
+                }
             }
         }
 
@@ -197,93 +214,57 @@ mod tests {
         // No space
         assert_eq!(
             ExcludeKind::try_from("domain=ban.this.mirror").unwrap(),
-            ExcludeKind::Domain {
-                value: "ban.this.mirror".to_string(),
-                negate: false
-            }
+            ExcludeKind::Domain("ban.this.mirror".to_string())
         );
         assert_eq!(
             ExcludeKind::try_from("domain=ban.this.mirror # Comment").unwrap(),
-            ExcludeKind::Domain {
-                value: "ban.this.mirror".to_string(),
-                negate: false
-            }
+            ExcludeKind::Domain("ban.this.mirror".to_string())
         );
 
         // Space
         assert_eq!(
             ExcludeKind::try_from("domain = ban.this.mirror").unwrap(),
-            ExcludeKind::Domain {
-                value: "ban.this.mirror".to_string(),
-                negate: false
-            }
+            ExcludeKind::Domain("ban.this.mirror".to_string())
         );
         assert_eq!(
             ExcludeKind::try_from("domain = ban.this.mirror # Comment").unwrap(),
-            ExcludeKind::Domain {
-                value: "ban.this.mirror".to_string(),
-                negate: false
-            }
+            ExcludeKind::Domain("ban.this.mirror".to_string())
         );
         assert_eq!(
             ExcludeKind::try_from("country = SomeCountry").unwrap(),
-            ExcludeKind::Country {
-                value: "somecountry".to_string(),
-                negate: false
-            }
+            ExcludeKind::Country("somecountry".to_string())
         );
         assert_eq!(
             ExcludeKind::try_from("country_code = SC").unwrap(),
-            ExcludeKind::CountryCode {
-                value: "sc".to_string(),
-                negate: false
-            }
+            ExcludeKind::CountryCode("sc".to_string())
         );
 
         // Without "domain="
         assert_eq!(
             ExcludeKind::try_from("ban.this.mirror").unwrap(),
-            ExcludeKind::Domain {
-                value: "ban.this.mirror".to_string(),
-                negate: false
-            }
+            ExcludeKind::Domain("ban.this.mirror".to_string())
         );
         assert_eq!(
             ExcludeKind::try_from("ban.this.mirror # Comment").unwrap(),
-            ExcludeKind::Domain {
-                value: "ban.this.mirror".to_string(),
-                negate: false
-            }
+            ExcludeKind::Domain("ban.this.mirror".to_string())
         );
 
         // Negate
         assert_eq!(
             ExcludeKind::try_from("!domain = ban.this.mirror").unwrap(),
-            ExcludeKind::Domain {
-                value: "ban.this.mirror".to_string(),
-                negate: true
-            }
+            ExcludeKind::NegateDomain("ban.this.mirror".to_string())
         );
         assert_eq!(
             ExcludeKind::try_from("!country = SomeCountry").unwrap(),
-            ExcludeKind::Country {
-                value: "somecountry".to_string(),
-                negate: true
-            }
+            ExcludeKind::NegateCountry("somecountry".to_string())
         );
         assert_eq!(
             ExcludeKind::try_from("!country_code = SC").unwrap(),
-            ExcludeKind::CountryCode {
-                value: "sc".to_string(),
-                negate: true
-            }
+            ExcludeKind::NegateCountryCode("sc".to_string())
         );
         assert_eq!(
             ExcludeKind::try_from("!ban.this.mirror").unwrap(),
-            ExcludeKind::Domain {
-                value: "ban.this.mirror".to_string(),
-                negate: true
-            }
+            ExcludeKind::NegateDomain("ban.this.mirror".to_string())
         );
     }
 
@@ -304,38 +285,14 @@ mod tests {
         assert_eq!(
             *excluded_mirrors.deref(),
             vec![
-                ExcludeKind::Domain {
-                    value: "ban.this.mirror".to_string(),
-                    negate: false
-                },
-                ExcludeKind::Domain {
-                    value: "ban.this-mirror.also".to_string(),
-                    negate: false
-                },
-                ExcludeKind::Domain {
-                    value: "ban.this.mirror.too".to_string(),
-                    negate: false,
-                },
-                ExcludeKind::Domain {
-                    value: "ban.this-mirror.too.really".to_string(),
-                    negate: false,
-                },
-                ExcludeKind::Domain {
-                    value: "this.mirror.is.not.ban".to_string(),
-                    negate: true,
-                },
-                ExcludeKind::Country {
-                    value: "somecountry".to_string(),
-                    negate: false
-                },
-                ExcludeKind::CountryCode {
-                    value: "sc".to_string(),
-                    negate: false
-                },
-                ExcludeKind::Domain {
-                    value: "mirror2.in.somecountry".to_string(),
-                    negate: true,
-                }
+                ExcludeKind::Domain("ban.this.mirror".to_string()),
+                ExcludeKind::Domain("ban.this-mirror.also".to_string()),
+                ExcludeKind::Domain("ban.this.mirror.too".to_string()),
+                ExcludeKind::Domain("ban.this-mirror.too.really".to_string()),
+                ExcludeKind::NegateDomain("this.mirror.is.not.ban".to_string()),
+                ExcludeKind::Country("somecountry".to_string()),
+                ExcludeKind::CountryCode("sc".to_string()),
+                ExcludeKind::NegateDomain("mirror2.in.somecountry".to_string()),
             ]
         );
     }
