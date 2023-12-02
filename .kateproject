@@ -1,0 +1,11 @@
+{
+    "name": "pacman-mirrorup",
+    "files": [
+        {
+            "git": 1
+        }
+    ],
+    "exclude_patterns": [
+        ".vscode"
+    ]
+}
