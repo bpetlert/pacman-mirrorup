@@ -33,5 +33,4 @@ package() {
   install -Dm644 "pacman-mirrorup.timer" "$pkgdir/usr/lib/systemd/system/pacman-mirrorup.timer"
 
   install -Dm644 "README.adoc" "$pkgdir/usr/share/doc/${pkgname}/README.adoc"
-  install -Dm644 "COPYING" "$pkgdir/usr/share/licenses/${pkgname}/COPYING"
 }
