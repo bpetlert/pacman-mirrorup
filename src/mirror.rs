@@ -187,8 +187,7 @@ impl Benchmark for Mirror {
 
         // If success
         if 300 > response.status() && response.status() >= 200 {
-            let duration: f64 = start.elapsed().as_millis() as f64;
-            let transfer_time: f64 = duration / 1000.0_f64;
+            let transfer_time: f64 = start.elapsed().as_secs_f64();
 
             let file_size: f64 = match response.header("Content-Length") {
                 Some(cl) => cl.parse()?,
