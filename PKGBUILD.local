@@ -37,8 +37,7 @@ build() {
 }
 
 package() {
-  cd "${startdir}"
-  install -Dm755 "target/release/pacman-mirrorup" "${pkgdir}/usr/bin/pacman-mirrorup"
+  install -Dm755 "${srcdir}/target/release/pacman-mirrorup" "${pkgdir}/usr/bin/pacman-mirrorup"
 
   install -Dm644 "${startdir}/pacman-mirrorup.service" "${pkgdir}/usr/lib/systemd/system/pacman-mirrorup.service"
   install -Dm644 "${startdir}/pacman-mirrorup.timer" "${pkgdir}/usr/lib/systemd/system/pacman-mirrorup.timer"
