@@ -116,7 +116,7 @@ pub trait Filter {
     ///     ==> delay(< 3600)
     fn best_synced_mirrors(
         &self,
-        max_check: u32,
+        max_check: Option<u32>,
         excluded_mirrors: Option<ExcludedMirrors>,
     ) -> Result<Mirrors>;
 }
@@ -124,7 +124,7 @@ pub trait Filter {
 impl Filter for MirrorsStatus {
     fn best_synced_mirrors(
         &self,
-        max_check: u32,
+        max_check: Option<u32>,
         excluded_mirrors: Option<ExcludedMirrors>,
     ) -> Result<Mirrors> {
         // Primary filter
@@ -149,7 +149,7 @@ impl Filter for MirrorsStatus {
         // Sort by delay value ascending
         mirrors.sort_by(|a, b| a.delay.cmp(&b.delay));
 
-        if max_check != 0 {
+        if let Some(max_check) = max_check {
             // Take only N synced mirrors
             mirrors.truncate(max_check.try_into()?);
         }
@@ -403,7 +403,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100, None)
+            .best_synced_mirrors(Some(100), None)
             .expect("Get best synced mirrors");
 
         mirrors.iter().for_each(|m| {
@@ -449,7 +449,7 @@ mod tests {
         excluded_mirrors.add(ExcludeKind::Domain("mirror.xtom.com.hk".to_string()));
 
         let mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(0, Some(excluded_mirrors))
+            .best_synced_mirrors(None, Some(excluded_mirrors))
             .expect("Get best synced mirrors");
 
         assert_eq!(
@@ -473,7 +473,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100, None)
+            .best_synced_mirrors(Some(100), None)
             .expect("Get best synced mirrors");
         mirrors.truncate(10);
         let _ = mirrors.measure_duration(TargetDb::Core);
@@ -491,7 +491,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100, None)
+            .best_synced_mirrors(Some(100), None)
             .expect("Get best synced mirrors");
         mirrors.iter_mut().for_each(|m| {
             m.transfer_rate = m.duration_avg;
@@ -517,7 +517,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100, None)
+            .best_synced_mirrors(Some(100), None)
             .expect("Get best synced mirrors");
         mirrors.iter_mut().for_each(|m| {
             m.transfer_rate = m.duration_avg;
@@ -564,7 +564,7 @@ mod tests {
         let mirrors_status: MirrorsStatus =
             serde_json::from_str(mirrors_status_raw).expect("Deserialized mirror status");
         let mut mirrors: Mirrors = mirrors_status
-            .best_synced_mirrors(100, None)
+            .best_synced_mirrors(Some(100), None)
             .expect("Get best synced mirrors");
         mirrors.select(20);
         assert_eq!(mirrors.len(), 20);

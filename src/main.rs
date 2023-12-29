@@ -91,7 +91,7 @@ fn run() -> Result<()> {
         })?;
 
     let best_synced_mirrors: Mirrors = mirrors_status
-        .best_synced_mirrors(arguments.max_check, excluded_mirrors)
+        .best_synced_mirrors(Some(arguments.max_check), excluded_mirrors)
         .context("Could not filter best synced mirrors")?;
 
     let best_mirrors: Mirrors = best_synced_mirrors
