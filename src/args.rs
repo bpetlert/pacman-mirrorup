@@ -36,7 +36,6 @@ pub struct Arguments {
     pub stats_file: Option<PathBuf>,
 
     /// Maximum number of synced mirrors to check,
-    /// 0 = check all synced mirrors
     #[arg(short = 'c', long, value_name = "NUMBER", default_value = "100")]
     pub max_check: u32,
 

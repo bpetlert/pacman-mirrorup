@@ -27,7 +27,6 @@ The best N mirrors can be changed by `--mirror` option, the default is 10.
 
 The total number of synced mirrors to be tested is 100.
 This number can be changed by `--max-check` option.
-Set it to zero to test all synced mirrors.
 
 To exclude a specific mirror, use `--exclude` option.
 This command line option can be specified many times.
