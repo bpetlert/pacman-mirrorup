@@ -1,6 +1,17 @@
 = pacman-mirrorup
 :toc:
 :toc-placement!:
+:xrefstyle: full
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:status:
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
 
 image:https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prereleases&label=release&style=flat-square[Release,link=https://github.com/bpetlert/pacman-mirrorup/releases/latest]
 image:https://img.shields.io/aur/version/pacman-mirrorup?style=flat-square["AUR: pacman-mirrorup",link=https://aur.archlinux.org/packages/pacman-mirrorup/]
@@ -22,10 +33,10 @@ To take user's geography into consideration.
 All filtered mirrors are tested data transfer rate.
 The mirror's score from original data is weighted using transfer rate.
 In other words, mirror's score is refined by using user's download speed.
-Finally, the best N mirrors are selected.
-The best N mirrors can be changed by `--mirror` option, the default is 10.
+Finally, the best *N* mirrors are selected.
+The best *N* mirrors can be changed by `--mirror` option, the default is *10*.
 
-The total number of synced mirrors to be tested is 100.
+The total number of synced mirrors to be tested is *100*.
 This number can be changed by `--max-check` option.
 
 To exclude a specific mirror, use `--exclude` option.
@@ -82,6 +93,11 @@ $ pacman -U pacman-mirrorup-xxxx-1-x86_64.pkg.tar
 
 == Usage
 
+=== Run as command line
+
+pacman-mirrorup can also be used directly from console.
+Without `--output-file` option, pacman-mirrorup will display output on STDOUT.
+
 === Run as systemd service
 
 pacman-mirrorup provides systemd timer unit which can be enabled by
@@ -98,7 +114,7 @@ To change the options of pacman-mirrorup service, run `systemctl edit pacman-mir
 Environment='MIRRORUP_ARGS=--output-file /etc/pacman.d/mirrorlist --threads 10'
 ----
 
-To show log message higher than waning try set https://docs.rs/env_logger/0.9.0/env_logger/#enabling-logging[RUST_LOG] environment variable. For example:
+To show log message higher than waning try set https://docs.rs/env_logger/latest/env_logger/#enabling-logging[`RUST_LOG`] environment variable. For example:
 
 ./etc/systemd/system/pacman-mirrorup.service.d/override.conf
 [source,ini]
@@ -117,11 +133,6 @@ To change the options of pacman-mirrorup timer, run `systemctl edit pacman-mirro
 OnCalendar=
 OnCalendar=daily
 ----
-
-=== Run as command line
-
-pacman-mirrorup can also be used directly from console.
-Without `--output-file` option, pacman-mirrorup will display output on STDOUT.
 
 == License
 
