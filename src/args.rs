@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use crate::mirror::TargetDb;
+use crate::mirror::{TargetDb, DEFAULT_SOURCE_URL};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -12,7 +12,7 @@ pub struct Arguments {
         short = 'S',
         long,
         value_name = "URL",
-        default_value = "https://www.archlinux.org/mirrors/status/json/"
+        default_value = DEFAULT_SOURCE_URL
     )]
     pub source_url: String,
 
@@ -69,10 +69,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(
-            args.source_url,
-            "https://www.archlinux.org/mirrors/status/json/".to_owned()
-        );
+        assert_eq!(args.source_url, DEFAULT_SOURCE_URL.to_owned());
         assert_eq!(args.target_db, TargetDb::Extra);
         assert_eq!(args.output_file, None);
         assert_eq!(args.stats_file, None);
@@ -88,7 +85,7 @@ mod tests {
         let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
             env!("CARGO_CRATE_NAME"),
             "--source-url",
-            "https://www.archlinux.org/mirrors/status/json/",
+            DEFAULT_SOURCE_URL,
             "--target-db",
             "extra",
             "--output-file",
@@ -104,10 +101,7 @@ mod tests {
         ]))
         .unwrap();
 
-        assert_eq!(
-            args.source_url,
-            "https://www.archlinux.org/mirrors/status/json/".to_owned()
-        );
+        assert_eq!(args.source_url, DEFAULT_SOURCE_URL.to_owned());
         assert_eq!(args.target_db, TargetDb::Extra);
         assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));
@@ -121,7 +115,7 @@ mod tests {
         let args = Arguments::from_arg_matches(&Arguments::command().get_matches_from(vec![
             env!("CARGO_CRATE_NAME"),
             "-S",
-            "https://www.archlinux.org/mirrors/status/json/",
+            DEFAULT_SOURCE_URL,
             "-t",
             "extra",
             "-o",
@@ -137,10 +131,7 @@ mod tests {
         ]))
         .unwrap();
 
-        assert_eq!(
-            args.source_url,
-            "https://www.archlinux.org/mirrors/status/json/".to_owned()
-        );
+        assert_eq!(args.source_url, DEFAULT_SOURCE_URL.to_owned());
         assert_eq!(args.target_db, TargetDb::Extra);
         assert_eq!(args.output_file, Some(PathBuf::from("/tmp/mirrorlist")));
         assert_eq!(args.stats_file, Some(PathBuf::from("/tmp/stats")));

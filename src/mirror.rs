@@ -25,6 +25,8 @@ static APP_USER_AGENT: &str = concat!(
     ")"
 );
 
+pub const DEFAULT_SOURCE_URL: &str = "https://archlinux.org/mirrors/status/json/";
+
 #[derive(clap::ValueEnum, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum TargetDb {
     Core,
@@ -379,9 +381,8 @@ mod tests {
 
     #[test]
     fn test_online_deserialize_mirrors_status() {
-        let _: MirrorsStatus =
-            MirrorsStatus::from_online_json("https://www.archlinux.org/mirrors/status/json/")
-                .unwrap();
+        let mirrors: MirrorsStatus = MirrorsStatus::from_online_json(DEFAULT_SOURCE_URL).unwrap();
+        assert!(mirrors.urls.len() >= 100);
     }
 
     #[test]
