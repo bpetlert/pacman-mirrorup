@@ -21,7 +21,7 @@ image:https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-
 
 toc::[]
 
-*pacman-mirrorup* uses JSON from https://www.archlinux.org/mirrors/status/[Arch Linux's mirror status] as data source.
+*pacman-mirrorup* uses JSON from https://archlinux.org/mirrors/status/[Arch Linux's mirror status] as data source.
 It applies filters as the following to original data:
 
 . Only active mirror
