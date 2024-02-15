@@ -271,9 +271,8 @@ impl Statistics for Mirrors {
 
     fn to_csv(&self, path: &Path) -> Result<()> {
         let file = OpenOptions::new()
+            .create_new(true)
             .write(true)
-            .create(true)
-            .append(false)
             .open(path)
             .with_context(|| format!("Could not create file `{}`", path.display()))?;
 
@@ -358,9 +357,8 @@ impl ToPacmanMirrorList for Mirrors {
 
     fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()> {
         let file = OpenOptions::new()
+            .create_new(true)
             .write(true)
-            .create(true)
-            .append(false)
             .open(path)
             .with_context(|| format!("Could not create file `{}`", path.display()))?;
 
