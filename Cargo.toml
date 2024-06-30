@@ -15,26 +15,26 @@ edition = "2021"
 publish = false
 
 [dependencies]
-anyhow = "1.0.82"
-chrono = { version = "0.4.38", default-features = false, features = ["clock"] }
-clap = { version = "4.5.4", features = ["derive"] }
-csv = "1.3.0"
-mimalloc = { version = "0.1.41", default-features = false }
-once_cell = "1.19.0"
-rayon = "1.10.0"
-regex = "1.10.4"
-serde = { version = "1.0.199", features = ["derive"] }
-serde_json = "1.0.116"
-tracing = { version = "0.1.40", features = [
+anyhow = "~1"
+chrono = { version = "~0.4", default-features = false, features = ["clock"] }
+clap = { version = "~4.5", features = ["derive"] }
+csv = "~1.3"
+mimalloc = { version = "~0.1", default-features = false }
+once_cell = "~1.19"
+rayon = "~1.10"
+regex = "~1.10"
+serde = { version = "~1.0", features = ["derive"] }
+serde_json = "~1.0"
+tracing = { version = "~0.1", features = [
   "max_level_debug",
   "release_max_level_debug",
 ] }
-tracing-subscriber = { version = "0.3.18", features = [
+tracing-subscriber = { version = "~0.3", features = [
   "env-filter",
   "fmt",
 ], default-features = false }
-ureq = { version = "2.9.7", features = ["json"] }
-url = "2.5.0"
+ureq = { version = "~2.9", features = ["json"] }
+url = "~2.5"
 
 [dev-dependencies]
-pretty_assertions = "1.4.0"
+pretty_assertions = "~1.4"
