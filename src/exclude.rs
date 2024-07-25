@@ -1,10 +1,10 @@
 use std::{
     ops::{Deref, DerefMut},
     path::Path,
+    sync::LazyLock,
 };
 
 use anyhow::{Context, Result};
-use once_cell::sync::Lazy;
 use regex::{Regex, RegexSet};
 use url::Url;
 
@@ -43,7 +43,7 @@ impl TryFrom<&str> for ExcludeKind {
             return Ok(ExcludeKind::Ignore);
         }
 
-        static EXCLUDE_SET_RE: Lazy<RegexSet> = Lazy::new(|| {
+        static EXCLUDE_SET_RE: LazyLock<RegexSet> = LazyLock::new(|| {
             RegexSet::new([
                 r"(?P<negate>!?)domain\s*=\s*(?P<domain>\S*)", // Domain
                 r"(?P<negate>!?)country\s*=\s*(?P<country>\S*)", // Country
@@ -52,7 +52,7 @@ impl TryFrom<&str> for ExcludeKind {
             .expect("Create exclude regex set")
         });
 
-        static EXCLUDE_CAPTURE_RE: Lazy<Vec<Regex>> = Lazy::new(|| {
+        static EXCLUDE_CAPTURE_RE: LazyLock<Vec<Regex>> = LazyLock::new(|| {
             EXCLUDE_SET_RE
                 .patterns()
                 .iter()

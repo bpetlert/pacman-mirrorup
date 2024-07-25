@@ -416,7 +416,6 @@ dependencies = [
  "clap",
  "csv",
  "mimalloc",
- "once_cell",
  "pretty_assertions",
  "rayon",
  "regex",
