@@ -7,7 +7,7 @@ use std::{
     process::ExitCode,
 };
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use clap::Parser;
 use mimalloc::MiMalloc;
 use tracing::{debug, error};

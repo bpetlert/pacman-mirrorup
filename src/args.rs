@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use crate::mirror::{TargetDb, DEFAULT_SOURCE_URL};
+use crate::mirror::{DEFAULT_SOURCE_URL, TargetDb};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
