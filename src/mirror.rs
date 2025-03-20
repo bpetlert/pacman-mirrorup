@@ -12,6 +12,7 @@ use anyhow::{bail, Context, Result};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
+use ureq::{Agent, Error};
 use url::Url;
 
 use crate::exclude::ExcludedMirrors;
@@ -97,13 +98,14 @@ impl FromIterator<Mirror> for Mirrors {
 impl MirrorsStatus {
     /// Fetch mirrors status from server
     pub fn from_online_json(url: &str) -> Result<Self> {
-        let response = ureq::get(url)
-            .set("User-Agent", APP_USER_AGENT)
+        let mut response = ureq::get(url)
+            .header("User-Agent", APP_USER_AGENT)
             .call()
             .with_context(|| format!("Failed to fetch `{url}`"))?;
 
         let mirrors_status: MirrorsStatus = response
-            .into_json()
+            .body_mut()
+            .read_json::<MirrorsStatus>()
             .context("Failed to deserialize the response body as MirrorsStatus")?;
 
         Ok(mirrors_status)
@@ -180,30 +182,34 @@ impl Benchmark for Mirror {
 
         self.transfer_rate = None;
 
+        let config = Agent::config_builder()
+            .timeout_global(Some(Duration::from_secs(10)))
+            .build();
+        let agent: Agent = config.into();
+
         let start = Instant::now();
-        let response = ureq::get(url.as_str())
-            .set("User-Agent", APP_USER_AGENT)
-            .timeout(Duration::from_secs(10))
+
+        match agent
+            .get(url.as_str())
+            .header("User-Agent", APP_USER_AGENT)
             .call()
-            .with_context(|| format!("Failed to fetch `{url}`"))?;
+        {
+            Ok(response) => {
+                let transfer_time: f64 = start.elapsed().as_secs_f64();
 
-        // If success
-        if 300 > response.status() && response.status() >= 200 {
-            let transfer_time: f64 = start.elapsed().as_secs_f64();
-
-            let file_size: f64 = match response.header("Content-Length") {
-                Some(cl) => cl.parse()?,
-                None => {
+                if let Some(file_size) = response.body().content_length() {
+                    let transfer_rate = (file_size as f64) / transfer_time;
+                    self.transfer_rate = Some(transfer_rate);
+                    debug!("Transfer Rate: {url} => {transfer_rate}");
+                } else {
                     debug!("Transfer Rate: {url} => None");
                     return Ok(());
                 }
-            };
-
-            let transfer_rate = file_size / transfer_time;
-            self.transfer_rate = Some(transfer_rate);
-            debug!("Transfer Rate: {url} => {transfer_rate}");
-        } else {
-            debug!("Transfer Rate: {url} => None");
+            }
+            Err(Error::StatusCode(code)) => {
+                bail!(format!("Failed to fetch `{url}, HTTP status code: {code}`"))
+            }
+            Err(_) => debug!("Transfer Rate: {url} => None"),
         }
 
         Ok(())
