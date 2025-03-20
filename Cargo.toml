@@ -11,7 +11,7 @@ license = "GPL-3.0-or-later"
 readme = "README.adoc"
 repository = "https://github.com/bpetlert/pacman-mirrorup"
 
-edition = "2021"
+edition = "2024"
 publish = false
 
 [dependencies]
