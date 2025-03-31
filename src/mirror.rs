@@ -53,7 +53,7 @@ pub struct Mirror {
     pub url: String,
     protocol: String,
     last_sync: Option<String>,
-    completion_pct: f64,
+    completion_pct: Option<f64>,
     delay: Option<i64>,
     duration_avg: Option<f64>,
     duration_stddev: Option<f64>,
@@ -137,7 +137,8 @@ impl Filter for MirrorsStatus {
             .iter()
             .filter(|m| m.active)
             .filter(|m| m.protocol == "http" || m.protocol == "https")
-            .filter(|m| (m.completion_pct - 1.0_f64).abs() < f64::EPSILON)
+            .filter(|m| m.completion_pct.is_some())
+            .filter(|m| (m.completion_pct.unwrap() - 1.0_f64).abs() < f64::EPSILON)
             .filter(|m| match m.delay {
                 Some(d) => d < 3600,
                 None => false,
@@ -419,7 +420,7 @@ mod tests {
             assert!(m.protocol == "http" || m.protocol == "https");
 
             // 100% sync
-            assert!((m.completion_pct - 1.0_f64).abs() < f64::EPSILON);
+            assert!((m.completion_pct.unwrap() - 1.0_f64).abs() < f64::EPSILON);
 
             // delay < 3600
             assert_ne!(m.delay, None);
@@ -459,7 +460,7 @@ mod tests {
 
         assert_eq!(
             mirrors.len(),
-            235,
+            347,
             "Number of mirrors returned = {}",
             mirrors.len()
         );
@@ -507,7 +508,7 @@ mod tests {
             .map(|m| m.weighted_score.expect("Weighted score value"))
             .sum();
         assert!(
-            (sum - 130.36784352365805).abs() < f64::EPSILON,
+            (sum - 139.0737774108812).abs() < f64::EPSILON,
             "sum = {}",
             sum
         );
@@ -537,7 +538,7 @@ mod tests {
             .weighted_score
             .expect("Weighted score value");
         assert!(
-            (first - 2.3526556787847417).abs() < f64::EPSILON,
+            (first - 2.738996062208527).abs() < f64::EPSILON,
             "first weighted score = {}",
             first
         );
