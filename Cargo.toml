@@ -1,6 +1,6 @@
 [package]
 name = "pacman-mirrorup"
-version = "1.0.3"
+version = "1.0.4"
 
 authors = ["Bhanupong Petchlert <bpetlert@gmail.com>"]
 
