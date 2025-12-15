@@ -40,3 +40,7 @@ update-deps:
 makepkg:
     makepkg -p PKGBUILD.local
     git co PKGBUILD.local
+
+# Format code
+format:
+    cargo +nightly fmt

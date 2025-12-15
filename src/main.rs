@@ -3,20 +3,41 @@ mod exclude;
 mod mirror;
 
 use std::{
-    io::{self, Write},
+    io::{
+        self,
+        Write,
+    },
     process::ExitCode,
 };
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{
+    Context,
+    Result,
+    anyhow,
+    bail,
+};
 use clap::Parser;
 use mimalloc::MiMalloc;
-use tracing::{debug, error};
+use tracing::{
+    debug,
+    error,
+};
 use tracing_subscriber::EnvFilter;
 
 use crate::{
     args::Arguments,
-    exclude::{ExcludeKind, ExcludedMirrors},
-    mirror::{Evaluation, Filter, Mirrors, MirrorsStatus, Statistics, ToPacmanMirrorList},
+    exclude::{
+        ExcludeKind,
+        ExcludedMirrors,
+    },
+    mirror::{
+        Evaluation,
+        Filter,
+        Mirrors,
+        MirrorsStatus,
+        Statistics,
+        ToPacmanMirrorList,
+    },
 };
 
 #[global_allocator]
