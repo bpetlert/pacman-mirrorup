@@ -57,16 +57,16 @@ fn run() -> Result<()> {
     let arguments = Arguments::parse();
     debug!("Run with {:?}", arguments);
 
-    if let Some(output_file) = &arguments.output_file {
-        if output_file.exists() {
-            bail!("`{}` is exist.", output_file.display());
-        }
+    if let Some(output_file) = &arguments.output_file
+        && output_file.exists()
+    {
+        bail!("`{}` is exist.", output_file.display());
     }
 
-    if let Some(stats_file) = &arguments.stats_file {
-        if stats_file.exists() {
-            bail!("`{}` is exist.", stats_file.display());
-        }
+    if let Some(stats_file) = &arguments.stats_file
+        && stats_file.exists()
+    {
+        bail!("`{}` is exist.", stats_file.display());
     }
 
     rayon::ThreadPoolBuilder::new()
