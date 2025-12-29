@@ -8,6 +8,7 @@ use std::{
         DerefMut,
     },
     path::Path,
+    thread::sleep,
     time::{
         Duration,
         Instant,
@@ -30,7 +31,9 @@ use tracing::{
 };
 use ureq::{
     Agent,
+    Body,
     Error,
+    http::Response,
 };
 use url::Url;
 
@@ -117,10 +120,36 @@ impl FromIterator<Mirror> for Mirrors {
 impl MirrorsStatus {
     /// Fetch mirrors status from server
     pub fn from_online_json(url: &str) -> Result<Self> {
-        let mut response = ureq::get(url)
-            .header("User-Agent", APP_USER_AGENT)
-            .call()
-            .with_context(|| format!("Failed to fetch `{url}`"))?;
+        let config = Agent::config_builder()
+            .timeout_global(Some(Duration::from_secs(5)))
+            .user_agent(APP_USER_AGENT)
+            .build();
+        let agent: Agent = config.into();
+
+        let max_retries = 5;
+        let base_delay = Duration::from_secs(1);
+        let mut attempts = 0;
+        let mut response: Response<Body> = {
+            loop {
+                match agent
+                    .get(url)
+                    .call()
+                    .with_context(|| format!("Failed to fetch `{url}`"))
+                {
+                    Ok(result) => break result,
+                    Err(err) => {
+                        attempts += 1;
+                        if attempts >= max_retries {
+                            bail!("{err:#}");
+                        }
+
+                        // Exponential backoff
+                        let delay = base_delay * 2_u32.pow(attempts as u32 - 1);
+                        sleep(delay);
+                    }
+                }
+            }
+        };
 
         let mirrors_status: MirrorsStatus = response
             .body_mut()
