@@ -120,16 +120,17 @@ impl FromIterator<Mirror> for Mirrors {
 impl MirrorsStatus {
     /// Fetch mirrors status from server
     pub fn from_online_json(url: &str) -> Result<Self> {
-        let config = Agent::config_builder()
-            .timeout_global(Some(Duration::from_secs(5)))
-            .user_agent(APP_USER_AGENT)
-            .build();
-        let agent: Agent = config.into();
-
-        let max_retries = 5;
-        let base_delay = Duration::from_secs(1);
-        let mut attempts = 0;
         let mut response: Response<Body> = {
+            let config = Agent::config_builder()
+                .timeout_global(Some(Duration::from_secs(5)))
+                .user_agent(APP_USER_AGENT)
+                .build();
+            let agent: Agent = config.into();
+
+            let max_retries = 5;
+            let base_delay = Duration::from_secs(1);
+            let mut attempts = 0;
+
             loop {
                 match agent
                     .get(url)
