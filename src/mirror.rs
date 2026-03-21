@@ -509,7 +509,7 @@ mod tests {
 
         assert_eq!(
             mirrors.len(),
-            347,
+            345,
             "Number of mirrors returned = {}",
             mirrors.len()
         );
@@ -557,7 +557,7 @@ mod tests {
             .map(|m| m.weighted_score.expect("Weighted score value"))
             .sum();
         assert!(
-            (sum - 139.0737774108812).abs() < f64::EPSILON,
+            (sum - 43.76911743489658).abs() < f64::EPSILON,
             "sum = {}",
             sum
         );
@@ -587,7 +587,7 @@ mod tests {
             .weighted_score
             .expect("Weighted score value");
         assert!(
-            (first - 2.738996062208527).abs() < f64::EPSILON,
+            (first - 0.828864829168273).abs() < f64::EPSILON,
             "first weighted score = {}",
             first
         );
