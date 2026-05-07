@@ -201,7 +201,7 @@ impl Filter for MirrorsStatus {
         }
 
         // Sort by delay value ascending
-        mirrors.sort_by(|a, b| a.delay.cmp(&b.delay));
+        mirrors.sort_by_key(|a| a.delay);
 
         if let Some(max_check) = max_check {
             // Take only N synced mirrors
