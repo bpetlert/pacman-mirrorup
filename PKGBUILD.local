@@ -22,7 +22,7 @@ pkgver() {
 prepare() {
     cd "${startdir}"
     export RUSTUP_TOOLCHAIN=stable
-    cargo fetch --locked --target $(rustc --print host-tuple)
+    cargo fetch --locked --target host-tuple
 }
 
 build() {
@@ -37,10 +37,8 @@ build() {
 }
 
 package() {
-    install -Dm755 "${srcdir}/target/release/pacman-mirrorup" "${pkgdir}/usr/bin/pacman-mirrorup"
-
-    install -Dm644 "${startdir}/pacman-mirrorup.service" "${pkgdir}/usr/lib/systemd/system/pacman-mirrorup.service"
-    install -Dm644 "${startdir}/pacman-mirrorup.timer" "${pkgdir}/usr/lib/systemd/system/pacman-mirrorup.timer"
-
-    install -Dm644 "${startdir}/README.adoc" "${pkgdir}/usr/share/doc/${pkgname}/README.adoc"
+    install -vDm755 -t "${pkgdir}/usr/bin" "${srcdir}/target/release/pacman-mirrorup"
+    install -vDm644 -t "${pkgdir}/usr/lib/systemd/system" "${startdir}/pacman-mirrorup.service"
+    install -vDm644 -t "${pkgdir}/usr/lib/systemd/system" "${startdir}/pacman-mirrorup.timer"
+    install -vDm644 -t "${pkgdir}/usr/share/doc/${pkgname}" "${startdir}/README.adoc"
 }
