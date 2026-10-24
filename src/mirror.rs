@@ -3,38 +3,17 @@ use std::{
     fmt::Write,
     fs::OpenOptions,
     io::BufWriter,
-    ops::{
-        Deref,
-        DerefMut,
-    },
+    ops::{Deref, DerefMut},
     path::Path,
     thread::sleep,
-    time::{
-        Duration,
-        Instant,
-    },
+    time::{Duration, Instant},
 };
 
-use anyhow::{
-    Context,
-    Result,
-    bail,
-};
+use anyhow::{Context, Result, bail};
 use rayon::prelude::*;
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use tracing::{
-    debug,
-    info,
-};
-use ureq::{
-    Agent,
-    Body,
-    Error,
-    http::Response,
-};
+use serde::{Deserialize, Serialize};
+use tracing::{debug, info};
+use ureq::{Agent, Body, Error, http::Response};
 use url::Url;
 
 use crate::exclude::ExcludedMirrors;

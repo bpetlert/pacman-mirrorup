@@ -1,20 +1,11 @@
 use std::{
-    ops::{
-        Deref,
-        DerefMut,
-    },
+    ops::{Deref, DerefMut},
     path::Path,
     sync::LazyLock,
 };
 
-use anyhow::{
-    Context,
-    Result,
-};
-use regex::{
-    Regex,
-    RegexSet,
-};
+use anyhow::{Context, Result};
+use regex::{Regex, RegexSet};
 use url::Url;
 
 use crate::mirror::Mirror;
