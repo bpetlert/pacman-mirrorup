@@ -1,52 +1,38 @@
-= pacman-mirrorup
-:toc:
-:toc-placement!:
-:xrefstyle: full
-ifndef::env-github[:icons: font]
-ifdef::env-github[]
-:status:
-:caution-caption: :fire:
-:important-caption: :exclamation:
-:note-caption: :paperclip:
-:tip-caption: :bulb:
-:warning-caption: :warning:
-endif::[]
+# pacman-mirrorup
 
+[![Release](https://img.shields.io/github/v/release/bpetlert/pacman-mirrorup?style=flat-square)](https://github.com/bpetlert/pacman-mirrorup/releases/latest)
+[![AUR](https://img.shields.io/aur/version/pacman-mirrorup?style=flat-square)](https://aur.archlinux.org/packages/pacman-mirrorup)
+[![License](https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-square)](./COPYING)
 
-image:https://img.shields.io/github/v/tag/bpetlert/pacman-mirrorup?include_prereleases&label=release&style=flat-square[Release,link=https://github.com/bpetlert/pacman-mirrorup/releases/latest]
-image:https://img.shields.io/aur/version/pacman-mirrorup?style=flat-square["AUR: pacman-mirrorup",link=https://aur.archlinux.org/packages/pacman-mirrorup/]
-image:https://img.shields.io/github/license/bpetlert/pacman-mirrorup?style=flat-square["License: GPL-3.0-or-later",link=./COPYING]
+**pacman-mirrorup** is a program to retrieve the best and latest Pacman mirror list based on user's geography.
 
-*pacman-mirrorup* is a program to retrieve the best and latest Pacman mirror list based on user's geography.
-
-toc::[]
-
-*pacman-mirrorup* uses JSON from https://archlinux.org/mirrors/status/[Arch Linux's mirror status] as data source.
+**pacman-mirrorup** uses JSON from [Arch Linux's mirror status](https://archlinux.org/mirrors/status/) as data source.
 It applies filters as the following to original data:
 
-. Only active mirror
-. HTTP/HTTPS protocol
-. Completion at 100 percent
-. Age under one hour
+- Only active mirror
+- HTTP/HTTPS protocol
+- Completion at 100 percent
+- Age under one hour
 
 To take user's geography into consideration.
 All filtered mirrors are tested data transfer rate.
 The mirror's score from original data is weighted using transfer rate.
 In other words, mirror's score is refined by using user's download speed.
-Finally, the best *N* mirrors are selected.
-The best *N* mirrors can be changed by `--mirror` option, the default is *10*.
+Finally, the best _N_ mirrors are selected.
+The best _N_ mirrors can be changed by `--mirror` option, the default is *10*.
 
 The total number of synced mirrors to be tested is *100*.
 This number can be changed by `--max-check` option.
 
 To exclude a specific mirror, use `--exclude` option.
 This command line option can be specified many times.
-[source,console]
-$ pacman-mirrorup \
+```bash
+pacman-mirrorup \
     --exclude <A-DOMAIN-NAME> \
     --exclude domain=<A-DOMAIN-NAME> \
     --exclude country=<A-COUNTRY-NAME> \
     --exclude country_code=<A-COUNTRY-CODE>
+```
 
 The excluded mirror list could also be loaded from a file using `--exclude-from <FILE>` option.
 Format is one excluded pattern per line.
@@ -56,9 +42,9 @@ The excluded list from `--exclude` option take precedence over list from `--excl
 The later occurrence of excluded pattern in list will also override any previous rules.
 For example:
 
-.excluded_mirrors
-[source,conf]
-----
+```ini
+# /etc/pacman.d/excluded_mirrors
+
 # This is a comment.
 ban.this.mirror
 
@@ -76,64 +62,66 @@ country_code = SC
 
 # Include this mirror, even though it was banned by previous rules
 !domain = mirror.in.SomeCountry
-----
+```
 
-== Installation
+## Installation
 
-=== Arch Linux
+### Arch Linux
 
-It is available on AUR as https://aur.archlinux.org/packages/pacman-mirrorup/[pacman-mirrorup].
+It is available on AUR as [pacman-mirrorup](https://aur.archlinux.org/packages/pacman-mirrorup).
 To build and install arch package from GIT source:
 
-[source,console]
-$ git clone https://github.com/bpetlert/pacman-mirrorup.git
-$ cd pacman-mirrorup
-$ makepkg -p PKGBUILD.local
-$ pacman -U pacman-mirrorup-xxxx-1-x86_64.pkg.tar
+```bash
+git clone https://github.com/bpetlert/pacman-mirrorup.git
+cd pacman-mirrorup
+makepkg -p PKGBUILD.local
+pacman -U pacman-mirrorup-xxxx-1-x86_64.pkg.tar
+```
 
-== Usage
+## Usage
 
-=== Run as command line
+### Run as command line
 
 pacman-mirrorup can also be used directly from console.
-Without `--output-file` option, pacman-mirrorup will display output on STDOUT.
+Without `--output-file` option, pacman-mirrorup will display output on `STDOUT`.
 
-=== Run as systemd service
+### Run as systemd service
 
 pacman-mirrorup provides systemd timer unit which can be enabled by
 
-[source,console]
-$ systemctl enable --now pacman-mirrorup.timer
+```bash
+systemctl enable --now pacman-mirrorup.timer
+```
 
 To change the options of pacman-mirrorup service, run `systemctl edit pacman-mirrorup.service`
 
-./etc/systemd/system/pacman-mirrorup.service.d/override.conf
-[source,ini]
-----
+```ini
+# /etc/systemd/system/pacman-mirrorup.service.d/override.conf
+
 [Service]
 Environment='MIRRORUP_ARGS=--output-file /etc/pacman.d/mirrorlist --threads 10'
-----
+```
 
 To show log message higher than waning try set https://docs.rs/env_logger/latest/env_logger/#enabling-logging[`RUST_LOG`] environment variable. For example:
 
-./etc/systemd/system/pacman-mirrorup.service.d/override.conf
-[source,ini]
-----
+```ini
+# /etc/systemd/system/pacman-mirrorup.service.d/override.conf
+
 [Service]
 Environment='RUST_LOG=pacman_mirrorup=debug'
 Environment='MIRRORUP_ARGS=--output-file /etc/pacman.d/mirrorlist --threads 10'
-----
+```
 
 To change the options of pacman-mirrorup timer, run `systemctl edit pacman-mirrorup.timer`
 
-./etc/systemd/system/pacman-mirrorup.timer.d/override.conf
-[source,ini]
-----
+```ini
+# /etc/systemd/system/pacman-mirrorup.timer.d/override.conf
+
 [Timer]
 OnCalendar=
 OnCalendar=daily
-----
+```
 
-== License
+## License
 
-*link:./COPYING[GNU General Public License v3.0 or later]*
+[GNU General Public License v3.0 or later](./COPYING)

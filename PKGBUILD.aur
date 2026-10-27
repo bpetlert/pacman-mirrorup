@@ -31,5 +31,5 @@ package() {
     install -vDm755 -t "${pkgdir}/usr/bin" target/release/pacman-mirrorup
     install -vDm644 -t "${pkgdir}/usr/lib/systemd/system" pacman-mirrorup.service
     install -vDm644 -t "${pkgdir}/usr/lib/systemd/system" pacman-mirrorup.timer
-    install -vDm644 -t "${pkgdir}/usr/share/doc/${pkgname}" README.adoc
+    install -vDm644 -t "${pkgdir}/usr/share/doc/${pkgname}" README.md
 }
