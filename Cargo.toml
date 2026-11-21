@@ -20,14 +20,21 @@ rayon = "~1"
 regex = "~1"
 serde = { version = "~1", features = ["derive"] }
 serde_json = "~1"
-tracing = { version = "~0.1", features = [
-  "max_level_debug",
-  "release_max_level_debug",
-] }
-tracing-subscriber = { version = "~0.3", default-features = false, features = [
-  "env-filter",
-  "fmt",
-] }
+tracing = {
+  version = "~0.1",
+  features = [
+    "max_level_debug",
+    "release_max_level_debug",
+  ]
+}
+tracing-subscriber = {
+  version = "~0.3",
+  default-features = false,
+  features = [
+    "env-filter",
+    "fmt",
+  ]
+}
 ureq = { version = "~3", features = ["json"] }
 url = "~2.5"
 

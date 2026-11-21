@@ -44,3 +44,4 @@ makepkg:
 # Format code
 format:
     cargo +nightly fmt
+    tombi format
