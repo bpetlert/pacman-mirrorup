@@ -20,6 +20,10 @@ use anyhow::{
     Result,
     bail,
 };
+use jiff::{
+    ZonedDateTime,
+    fmt::rfc2822,
+};
 use rayon::prelude::*;
 use serde::{
     Deserialize,
@@ -371,7 +375,7 @@ pub trait ToPacmanMirrorList {
     fn to_mirrorlist_file(&self, path: &Path, source_url: &str) -> Result<()>;
 
     fn header(&self, source_url: &str) -> Result<String> {
-        let now = chrono::Local::now();
+        let now = rfc2822::to_string(&ZonedDateTime::now())?;
         Ok(format!(
             "\
             #\n\
@@ -386,8 +390,7 @@ pub trait ToPacmanMirrorList {
             #\n\
             \n\
             ",
-            source_url,
-            now.to_rfc2822()
+            source_url, now
         ))
     }
 }
